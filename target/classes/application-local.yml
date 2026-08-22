@@ -1,11 +1,14 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/stayhub
-    username: stayhub
-    password: stayhub
+    url: jdbc:postgresql://localhost:5432/stayhub_db
+    username: stayhub_user
+    password: 123321999
+    driver-class-name: org.postgresql.Driver
 
   jpa:
-    show-sql: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
 
   thymeleaf:
     cache: false

@@ -1,1 +1,3 @@
 com/stayhub/StayhubApplication.class
+com/stayhub/home/HomeController.class
+com/stayhub/config/SecurityConfig.class
