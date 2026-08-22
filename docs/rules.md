@@ -1,194 +1,115 @@
-# StayHub — Task List
+# QUY CHUẨN LÀM VIỆC CHUNG CỦA DỰ ÁN STAYHUB (PROJECT RULES & CONVENTIONS)
 
-## Target Project Structure
+## 1. GIT WORKFLOW & BRANCHING
+Dự án áp dụng Branching Model cơ bản của Github Flow:
+*   **`main` branch:** Source code sạch tuyệt đối để Deploy lên Server Thật (Production). Chỉ Leader/PM mới được phép nhấn nút Merge vào nhánh này.
+*   **`dev` branch:** Nhánh môi trường STAGING. Tất cả anh em dev sẽ ghép code vào đây để review chéo và test tổng thể trước khi release. Cấm push thẳng (direct push) vào nhánh này.
+*   **Nhánh cá nhân (Feature / Fixbug):** Bắt buộc phải rẽ nhánh từ `dev`.
+    *   Cú pháp nhánh: `<loại_nhánh>/TSK-<ID-task>`
+    *   Ví dụ làm tính năng: `feature/TSK-010`
+    *   Ví dụ sửa bug: `fixbug/TSK-010`
+    *   Ví dụ viết docs/setup/cấu hình: `chore/TSK-001`
+    *   Ví dụ refactor code: `refactor/TSK-015`
 
-```txt
-StayHub/
-├── .github/
-├── docs/                          # first-step.md, flow.md, rules.md, task-list.md
-├── src/main/
-│   ├── java/com/stayhub/
-│   │   ├── StayHubApplication.java
-│   │   ├── common/          {exception, response, validation, util}
-│   │   ├── config/          SecurityConfig, MailConfig, StorageConfig
-│   │   ├── auth/            AuthController, AuthService, UserPrincipal, dto/
-│   │   ├── user/            User, UserRepository, UserService, dto/
-│   │   ├── property/        Property, PropertyController/Service/Repository/Mapper, dto/
-│   │   ├── search/          SearchController, SearchService, SearchRepository, dto/
-│   │   ├── booking/         Booking, BookingStatus, BookingController/Service/Repository, BookingPriceService, dto/
-│   │   ├── payment/         Payment, PaymentStatus, PaymentMethod, PaymentService, MockPaymentService, dto/
-│   │   ├── review/          Review, ReviewController, ReviewService, ReviewRepository
-│   │   ├── host/            HostController, HostService, dto/
-│   │   ├── admin/           AdminController, AdminService
-│   │   ├── notification/    NotificationService, EmailNotificationService
-│   │   └── storage/         StorageService, LocalStorageService, CloudinaryStorageService
-│   └── resources/
-│       ├── templates/
-│       │   ├── fragments/   navbar.html, footer.html
-│       │   ├── home/        index.html
-│       │   ├── property/    search-results.html, property-detail.html
-│       │   ├── booking/     booking.html, payment.html, booking-detail.html
-│       │   ├── auth/        login.html, register.html
-│       │   ├── host/        dashboard.html
-│       │   └── admin/       bookings.html
-│       ├── static/{css,js,images,favicon.ico}
-│       ├── db/migration/    V1__create_users.sql, V2__create_properties.sql, V3__create_bookings.sql, ...
-│       ├── application.yml
-│       ├── application-local.yml
-│       └── application-docker.yml
-├── .dockerignore / .gitignore / Dockerfile / docker-compose.yml / pom.xml / tailwind.config.js
+## 2. QUY TẮC COMMIT MESSAGE (CONVENTIONAL COMMITS)
+Bắt buộc phải có Tiền tố và Mã Task để dễ theo dõi lịch sử:
+*   `feat: [TSK-010] tạo trang tìm kiếm property theo địa điểm` *(Thêm tính năng mới)*
+*   `fix: [TSK-020] sửa lỗi tính sai tổng tiền booking khi có phí dịch vụ` *(Sửa lỗi)*
+*   `chore: [TSK-002] cập nhật Spring Boot lên 3.x và cài Tailwind` *(Cấu hình, thư viện, không tác động code logic)*
+*   `refactor: [TSK-015] tách logic tính giá booking ra BookingPriceService` *(Sửa code nhưng không làm thay đổi tính năng)*
+*   `docs: [TSK-029] thêm file hướng dẫn setup Docker Compose` *(Cập nhật tài liệu)*
+
+---
+
+## 3. GIT STEP-BY-STEP (QUY TRÌNH HÀNG NGÀY)
+
+Quy trình chuẩn khi bắt tay vào làm một Task mới:
+
+```bash
+# 1. Chuyển về nhánh dev và cập nhật code mới nhất từ team
+git checkout dev
+git pull origin dev
+
+# 2. Tạo nhánh mới cho task của mình
+git checkout -b feature/TSK-010
+
+# 3. Add và Commit code
+git add .
+git commit -m "feat: [TSK-010] implement property search API"
+
+# 4. Push nhánh cá nhân lên Github
+git push -u origin feature/TSK-010
+```
+⚠️ **Quan trọng:** Sau khi push, lên Github tạo một Pull Request (PR) từ nhánh feature/TSK-010 vào nhánh dev. Gắn thẻ (Tag/Assign) một thành viên khác trong team để Review Code. Review xong mới được bấm Merge.
+
+## 4. REST API STANDARDS (BACKEND)
+
+> Lưu ý: StayHub là ứng dụng **Monolith render server-side bằng Thymeleaf**, nên phần lớn luồng chính (xem trang chủ, search, chi tiết property, booking...) sẽ đi qua **Controller trả về View (`.html`)**, không phải REST API JSON. Chuẩn REST bên dưới áp dụng cho các endpoint **AJAX nội bộ** (gọi từ Alpine.js/htmx trong trang, ví dụ: lọc property theo giá, check ngày trống, autocomplete địa điểm...) và cho các API phục vụ app mobile/admin export dữ liệu (nếu có sau này).
+
+### Cấu trúc JSON Response (Chuẩn 1 chiều)
+  - Tất cả API response (dù thành công hay thất bại) phải được bọc vào một class DTO duy nhất (`ApiResponse<T>`) để Frontend (Alpine.js/htmx) dễ dàng parse JSON.
+```json
+{
+  "success": true, // true | false
+  "message": "Lấy danh sách property thành công",
+  "data": {       // Payload trả về (nếu mảng trống trả [], nếu không có data trả null)
+     "properties": [
+       { "id": 12, "title": "The River Apartment", "pricePerNight": 1500000 }
+     ],
+     "totalResults": 120
+  },
+  "errorCode": null // Mã lỗi nội bộ để Frontend map UI (VD: "ERR_ROOM_NOT_AVAILABLE"), không có lỗi thì null
+}
 ```
 
----
-
-# SPRINT 0 — NỀN TẢNG CHUNG
-
-- [x] **TSK-001** `[PM/Setup]` Khởi tạo Git repo + branch `main`/`dev`, add Collaborator cho cả 3 người. *(Estimate: 0.5h · Priority: Urgent)*
-
-- [x] **TSK-002** `[BE_Core]` Khởi tạo `pom.xml` (Spring Boot 3.3.2, Java 21) + `StayHubApplication.java`. *(Estimate: 1h · Priority: Urgent)*
-
-- [ ] **TSK-003** `[Infra]` `Dockerfile` (multi-stage Maven build → JRE runtime) + `docker-compose.yml` (Postgres). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-004** `[Infra]` `.gitignore`, `.dockerignore`, tách `application.yml` / `application-local.yml` / `application-docker.yml`. *(Estimate: 1h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-005** `[FE_Core]` Setup `tailwind.config.js` build pipeline (npm/CLI), output CSS vào `static/css/`. *(Estimate: 1h · Priority: High)*
-
-- [ ] **TSK-006** `[BE_Core]` Package `common/response`: tạo `ApiResponse<T>` chuẩn theo `rules.md` mục 4. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-007** `[BE_Core]` Package `common/exception`: `GlobalExceptionHandler` (`@RestControllerAdvice`) + các exception dùng chung (`ResourceNotFoundException`, `BusinessException`...). *(Estimate: 1h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-008** `[BE_Core]` Package `common/validation` + `common/util`: custom validator (vd: check-in phải trước check-out), `DateUtil`, `PriceUtil`. *(Estimate: 1h · Priority: Medium)*
-
-- [ ] **TSK-009** `[BE_Core]` `common` chứa `BaseEntity` (id, createdAt, updatedAt) — dùng chung cho mọi entity ở 3 track. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-010** `[DB]` Migration `V1__create_users.sql` (bảng `users`: id, email, password_hash, full_name, phone, role, created_at). *(Estimate: 1h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-011** `[FE_Core]` `templates/fragments/navbar.html`, `footer.html` (bản khung, chưa cần hoàn thiện logic login/logout). *(Estimate: 1h · Priority: Medium)*
-
-
----
-
-# TRACK A — AUTH · USER · CORE CONFIG · ADMIN
-
-- [ ] **TSK-012** `[BE_Config]` `config/SecurityConfig.java`: session-based auth, `PasswordEncoder` (BCrypt), phân quyền theo path (`/host/**` → HOST, `/admin/**` → ADMIN). *(Estimate: 2.5h · Priority: Urgent · Blocking cho Dev B & Dev C)*
-
-- [ ] **TSK-013** `[BE_User]` `user/User.java` (entity extends BaseEntity), `user/dto/` (UserResponse, UpdateProfileRequest). *(Estimate: 1h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-014** `[BE_User]` `UserRepository`, `UserService` (đăng ký, tìm theo email, đổi mật khẩu). *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-015** `[BE_Auth]` `auth/UserPrincipal.java` (implements `UserDetails`) + `AuthService` (load user, xác thực). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
-
-- [ ] **TSK-016** `[BE_Auth]` `auth/AuthController.java`: `GET/POST /register`, `GET /login`, `POST /logout` + `auth/dto/RegisterRequest`. *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-017** `[FE_Auth]` `templates/auth/login.html`, `register.html`. *(Estimate: 2h · Priority: High)*
-
-- [ ] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). *(Estimate: 1h · Priority: Medium)*
-
-- [ ] **TSK-019** `[DB]` Migration cho quyền hạn nếu cần (vd: thêm cột `status` cho user bị khoá) — tuỳ phát sinh. *(Estimate: 0.5h · Priority: Low)*
-
-- [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan (tổng users, hosts, bookings, revenue). *(Estimate: 3h · Priority: Medium)*
-
-- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: bảng quản lý booking toàn hệ thống (search, filter theo status). *(Estimate: 2.5h · Priority: Medium)*
-
-- [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role) — mở rộng `AdminController`. *(Estimate: 2h · Priority: Low)*
-
----
-
-# TRACK B — PROPERTY · SEARCH · HOST · STORAGE
-
-- [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id FK→users, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, created_at) + `property_images`, `amenities`, `property_amenities`. *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertySummary). *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-025** `[BE_Property]` `PropertyRepository`, `PropertyService`, `PropertyMapper` (entity ↔ dto, tránh trả Entity trực tiếp theo `rules.md`). *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-026** `[BE_Storage]` `storage/StorageService.java` (interface) + `LocalStorageService.java` (lưu đĩa cục bộ trước, dùng khi dev). *(Estimate: 2h · Priority: High)*
-
-- [ ] **TSK-027** `[BE_Storage]` `storage/CloudinaryStorageService.java` + `config/StorageConfig.java` (bean chọn implementation theo `app.upload.use-cloudinary`). *(Estimate: 2h · Priority: Medium)*
-
-- [ ] **TSK-028** `[BE_Property]` `PropertyController.java`: `GET /` (home), `GET /properties/{id}` (property detail). *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests), popular destinations, featured properties — theo `flow.md`. *(Estimate: 2.5h · Priority: Urgent)*
-
-- [ ] **TSK-030** `[BE_Search]` `search/SearchController.java`, `SearchService.java`, `SearchRepository.java`, `search/dto/SearchCriteria`: `GET /properties?location=&checkIn=&checkOut=&guests=` + filter (price, type, bedrooms, amenities, rating) + sort + pagination. *(Estimate: 3.5h · Priority: Urgent)*
-
-- [ ] **TSK-031** `[FE_Property]` `templates/property/search-results.html` (filter sidebar + property list) theo layout `flow.md`. *(Estimate: 3h · Priority: Urgent)*
-
-- [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh, description, amenities, reviews, price box. *(Estimate: 3h · Priority: Urgent)*
-
-- [ ] **TSK-033** `[BE_Host]` `host/HostController.java`, `HostService.java`, `host/dto/`: CRUD property của host (`GET/POST /host/properties`, upload ảnh qua `StorageService`). *(Estimate: 3h · Priority: High)*
-
-- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: danh sách property của host + danh sách booking request (dữ liệu booking request lấy từ API bên Track C, xem TSK-041). *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
-
----
-
-# TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION
-
-- [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, total_price, status, created_at). *(Estimate: 1h · Priority: Urgent · phụ thuộc TSK-023 của Dev B đã có bảng `properties`)*
-
-- [ ] **TSK-036** `[BE_Booking]` `booking/Booking.java`, `booking/BookingStatus.java` (`PENDING/CONFIRMED/CANCELLED/REJECTED/COMPLETED`), `booking/dto/`. *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-037** `[BE_Booking]` `BookingRepository`, `BookingService` (tạo booking, check overlap ngày), `BookingPriceService` (tính `price × nights + cleaning fee + service fee`). *(Estimate: 3h · Priority: Urgent)*
-
-- [ ] **TSK-038** `[BE_Booking]` AJAX `POST /api/v1/bookings/check-availability` — dùng `ApiResponse<T>`, `errorCode = "ERR_ROOM_NOT_AVAILABLE"` nếu trùng ngày. *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-039** `[BE_Booking]` `BookingController.java`: `GET /properties/{id}/book` → `booking.html`, `POST /bookings`. *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-040** `[FE_Booking]` `templates/booking/booking.html` + `payment.html`: Your booking, Guest details, Price summary, nút "Confirm & Pay" theo `flow.md`. *(Estimate: 3h · Priority: Urgent)*
-
-- [ ] **TSK-041** `[BE_Payment]` `payment/Payment.java`, `PaymentStatus.java`, `PaymentMethod.java` + Migration `V4__create_payments.sql`. *(Estimate: 1h · Priority: Urgent)*
-
-- [ ] **TSK-042** `[BE_Payment]` `payment/MockPaymentService.java` (implements `PaymentService`): set `payment_method = MOCK`, `status = SUCCESS` ngay lập tức. *(Estimate: 1.5h · Priority: Urgent)*
-
-- [ ] **TSK-043** `[BE_Booking]` Flow `Confirm & Pay → Payment Success → Create Booking (PENDING)` đúng sơ đồ `flow.md`; expose API cho Dev B lấy "booking requests theo host" (phục vụ TSK-034). *(Estimate: 2h · Priority: Urgent · Blocking cho Dev B)*
-
-- [ ] **TSK-044** `[BE_Booking]` API accept/reject cho host (`PENDING → CONFIRMED/REJECTED`), cancel cho guest (`PENDING/CONFIRMED → CANCELLED`). *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-045** `[FE_Booking]` `templates/booking/booking-detail.html` + trang "My Bookings" (tabs Upcoming/Pending/Completed/Cancelled) theo `flow.md`. *(Estimate: 3h · Priority: High)*
-
-- [ ] **TSK-046** `[DB]` Migration `V5__create_reviews.sql` (id, booking_id, rating, comment, created_at). *(Estimate: 0.5h · Priority: Medium)*
-
-- [ ] **TSK-047** `[BE_Review]` `review/Review.java`, `ReviewController.java`, `ReviewService.java`, `ReviewRepository.java`: cho phép review khi booking `COMPLETED`. *(Estimate: 2.5h · Priority: Medium)*
-
-- [ ] **TSK-048** `[BE_Notification]` `config/MailConfig.java` + `notification/NotificationService.java` (interface) + `EmailNotificationService.java`: gửi mail khi booking đổi trạng thái (CONFIRMED/REJECTED/CANCELLED). *(Estimate: 2.5h · Priority: Medium)*
-
----
-
-# INTEGRATION & DEPLOY
-
-- [ ] **TSK-049** `[Testing]` Test end-to-end theo `flow.md`: Search → Property Detail → Check Availability → Booking → Mock Payment → PENDING → Host Accept → CONFIRMED → My Bookings → Review. *(Estimate: 2h · Priority: Urgent)*
-
-- [ ] **TSK-050** `[Infra]` Verify `docker compose up -d --build` chạy full stack (app + db) không lỗi, dùng `application-docker.yml`. *(Estimate: 1.5h · Priority: High)*
-
-- [ ] **TSK-051** `[Testing]` Review chéo giữa 3 track: kiểm tra không có entity nào bị trả trực tiếp ra view/API (đúng `rules.md` mục 5), không có `catch (Exception e) {}` rỗng. *(Estimate: 1.5h · Priority: High)*
-
-- [ ] **TSK-052** `[Docs]` Cập nhật README + screenshots, đánh dấu lại task đã hoàn thành trong `task-list.md`. *(Estimate: 1h · Priority: Medium)*
-
----
-
-# MVP Done Checklist
-
-- [ ] Chạy được app bằng `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` sau `docker compose up -d db`.
-- [ ] Đăng ký / đăng nhập / phân quyền GUEST-HOST-ADMIN hoạt động (`SecurityConfig`).
-- [ ] Search property theo địa điểm + ngày + số khách, có filter/sort/pagination.
-- [ ] Xem property detail, check availability theo ngày trước khi đặt.
-- [ ] Đặt phòng → mock payment SUCCESS → booking status PENDING.
-- [ ] Host xem được booking request, accept/reject.
-- [ ] User xem My Bookings, cancel được booking.
-- [ ] Sau COMPLETED, user viết được review, hiển thị trên property detail.
-- [ ] Admin xem được dashboard tổng quan + danh sách booking toàn hệ thống.
-- [ ] Nhận được email khi booking đổi trạng thái.
-- [ ] `docker compose up -d --build` chạy được toàn bộ stack.
-
----
-
-# Post-MVP (Optional)
-
-- [ ] Tích hợp thanh toán thật VNPay/Momo (thay `MockPaymentService`).
-- [ ] Wishlist (lưu property yêu thích).
-- [ ] Cache rating trung bình thay vì tính lại mỗi lần load property.
-- [ ] Export báo cáo (CSV/PDF) cho Admin.
-- [ ] Notification real-time (websocket) thay vì chỉ email.
-- [ ] Rate limiting cho `auth` (chống brute-force login).
+### Quy tắc định tuyến (Routing)
+  - Dùng danh từ số nhiều, viết thường (lowercase), phân cách bằng dấu gạch ngang (kebab-case).
+  - **Đúng:** `GET /api/v1/properties`, `GET /api/v1/search-locations`, `POST /api/v1/bookings/check-availability`
+  - **Sai:** `GET /api/v1/getProperty`, `GET /api/v1/Search`
+  - Các Controller trả về **View Thymeleaf** thì dùng route thân thiện, không cần tiền tố `/api`:
+    - **Đúng:** `GET /properties/{id}`, `GET /host/dashboard`, `GET /admin/bookings`
+    - **Sai:** `GET /property-detail-page`, `GET /viewHostDashboard`
+
+### Quy tắc HTTP Status Code
+  - `200 OK`: Trả về thành công (Dùng cho GET, PUT, DELETE).
+  - `201 Created`: Tạo mới thành công (Dùng cho POST, VD: tạo booking mới).
+  - `400 Bad Request`: Client gửi sai data, thiếu query params (VD: thiếu check-in/check-out khi search).
+  - `401 Unauthorized` / `403 Forbidden`: Chưa đăng nhập / không đủ quyền (VD: guest cố vào trang `/admin`).
+  - `404 Not Found`: Không tìm thấy dữ liệu (VD: property đã bị xoá hoặc không tồn tại).
+  - `409 Conflict`: Trạng thái nghiệp vụ xung đột (VD: property đã hết phòng trống ngày khách chọn).
+  - `500 Internal Server Error`: Lỗi server (DB sập, exception chưa handle...).
+
+## 5. CODE STYLE & CONVENTIONS
+
+### Đối với Backend (Java / Spring Boot)
+  - **Class (Controller, Service, Entity, DTO...):** Dùng `PascalCase`, kèm hậu tố thể hiện vai trò rõ ràng:
+    - `PropertyController`, `BookingService`, `BookingRepository`, `PropertyEntity` (hoặc `Property` nếu không trùng tên DTO), `CreateBookingRequest`, `BookingResponse`.
+  - **Biến, phương thức (method):** Dùng `camelCase` (vd: `findAvailableProperties()`, `checkInDate`).
+  - **Hằng số (constant):** Dùng `UPPER_SNAKE_CASE` (vd: `MAX_GUEST_PER_BOOKING`).
+  - **Cấu trúc package theo tính năng (feature-based), không theo layer:**
+    ```
+    com.stayhub.property.PropertyController
+    com.stayhub.property.PropertyService
+    com.stayhub.property.PropertyRepository
+    com.stayhub.booking.BookingController
+    com.stayhub.booking.BookingService
+    ```
+  - **Bắt buộc** format code theo chuẩn mặc định của IDE (hoặc Spotless/Checkstyle nếu project cấu hình) trước khi commit.
+  - **Xử lý lỗi:** Dùng `@ControllerAdvice`/`@RestControllerAdvice` để bắt exception tập trung, không `try-catch` rồi nuốt lỗi (`catch (Exception e) {}` rỗng là **cấm**).
+  - **DTO tách biệt Entity:** Không trả trực tiếp JPA Entity ra View/API, luôn map qua DTO để tránh lộ field nhạy cảm (VD: password hash) và tránh lỗi lazy-loading.
+
+### Đối với Frontend (Thymeleaf + Tailwind CSS + Alpine.js/htmx)
+  - **Tên file template:** `kebab-case`, đặt tên theo trang/chức năng (vd: `property-detail.html`, `booking-payment.html`, `host-dashboard.html`).
+  - **Fragment dùng chung** (header, footer, navbar...) đặt trong thư mục `fragments/` (vd: `fragments/navbar.html`), gọi bằng `th:replace` hoặc `th:insert`.
+  - **Biến trong Thymeleaf (`th:*`):** Dùng `camelCase`, đồng bộ tên với field trong DTO/Model phía Java (vd: model có `pricePerNight` thì template dùng `${property.pricePerNight}`).
+  - **CSS:** Ưu tiên dùng class utility của Tailwind trực tiếp trong HTML, hạn chế viết CSS custom riêng trừ khi thực sự cần (animation, style đặc thù).
+  - **JS tương tác nhẹ (Alpine.js/htmx):** Viết inline trong thẻ HTML (`x-data`, `hx-get`...) cho các tương tác đơn giản; nếu logic phức tạp hơn thì tách ra file riêng trong `static/js/`, đặt tên `kebab-case` (vd: `property-search.js`).
+  - Không được để sót `console.log()` trong code khi tạo Pull Request.
+
+### Đối với Database (PostgreSQL)
+  - **Tên Bảng (Table) và Cột (Column):** Dùng `snake_case` chữ thường (vd: `properties`, `bookings`, `check_in_date`, `price_per_night`, `host_id`).
+  - **Khoá ngoại (Foreign key):** Đặt tên theo mẫu `<bảng_số_ít>_id` (vd: `property_id`, `guest_id`, `host_id`).
+  - **Migration:** Mọi thay đổi schema phải đi qua file Flyway trong `src/main/resources/db/migration/`, đặt tên theo chuẩn `V{version}__{mo_ta_ngan}.sql` (vd: `V5__add_status_column_to_bookings.sql`). **Không** sửa trực tiếp DB production bằng tay.
+  - Không dùng tiếng Việt có dấu, không dùng khoảng trắng trong tên bảng/cột.
 
 ---

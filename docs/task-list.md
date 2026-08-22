@@ -1,309 +1,207 @@
-# HCM Route Finder MVP — Task List
+# StayHub MVP — Task List (Team 3 người)
 
-## Project Structure
+## Target Project Structure
 
 ```txt
-HCM-Route-Finder/
-├── frontend/             # NextJS, Tailwind, Leaflet
-├── backend/              # Python, FastAPI, A* Algorithm
-├── data/                 # File OSM, Scripts SQL, Docker configs
-├── docs/                 # Tài liệu, Screenshots
-├── docker-compose.yml    # Chạy DB, Backend, Frontend
-└── README.md
+StayHub/
+├── .github/
+├── docs/                          # first-step.md, flow.md, rules.md, task-list.md
+├── src/main/
+│   ├── java/com/stayhub/
+│   │   ├── StayHubApplication.java
+│   │   ├── common/          {exception, response, validation, util}
+│   │   ├── config/          SecurityConfig, MailConfig, StorageConfig
+│   │   ├── auth/            AuthController, AuthService, UserPrincipal, dto/
+│   │   ├── user/            User, UserRepository, UserService, dto/
+│   │   ├── property/        Property, PropertyController/Service/Repository/Mapper, dto/
+│   │   ├── search/          SearchController, SearchService, SearchRepository, dto/
+│   │   ├── booking/         Booking, BookingStatus, BookingController/Service/Repository, BookingPriceService, dto/
+│   │   ├── payment/         Payment, PaymentStatus, PaymentMethod, PaymentService, MockPaymentService, dto/
+│   │   ├── review/          Review, ReviewController, ReviewService, ReviewRepository
+│   │   ├── host/            HostController, HostService, dto/
+│   │   ├── admin/           AdminController, AdminService
+│   │   ├── notification/    NotificationService, EmailNotificationService
+│   │   └── storage/         StorageService, LocalStorageService, CloudinaryStorageService
+│   └── resources/
+│       ├── templates/
+│       │   ├── fragments/   navbar.html, footer.html
+│       │   ├── home/        index.html
+│       │   ├── property/    search-results.html, property-detail.html
+│       │   ├── booking/     booking.html, payment.html, booking-detail.html
+│       │   ├── auth/        login.html, register.html
+│       │   ├── host/        dashboard.html
+│       │   └── admin/       bookings.html
+│       ├── static/{css,js,images,favicon.ico}
+│       ├── db/migration/    V1__create_users.sql, V2__create_properties.sql, V3__create_bookings.sql, ...
+│       ├── application.yml
+│       ├── application-local.yml
+│       └── application-docker.yml
+├── .dockerignore / .gitignore / Dockerfile / docker-compose.yml / pom.xml / tailwind.config.js
 ```
 
----
+## Phân chia công việc (3 người)
 
-# DAY 1 — PROJECT SETUP + MAP RENDERING
+Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗi người tự chủ động branch/PR trên phần của mình (đúng git flow trong `rules.md`):
 
-- [x] **TSK-001** `[PM/Setup]` Khởi tạo Monorepo Git + Base Structure. *(Estimate: 1h · Priority: Urgent)*
+| | Package sở hữu | Trọng tâm |
+|---|---|---|
+| **Dev A** | `common`, `config`, `auth`, `user`, `admin` | Nền tảng, đăng nhập/phân quyền, trang admin |
+| **Dev B** | `property`, `search`, `host`, `storage` | Search, property detail, host dashboard, upload ảnh |
+| **Dev C** | `booking`, `payment`, `review`, `notification` | Đặt phòng, mock payment, review, email |
 
-  **Description:**
-  - Tạo repo Github `hcm-route-finder`
-  - Tạo branch: `main`, `dev`
-  - Tạo folder: `frontend/`, `backend/`, `data/`, `docs/`
-  - Tạo README mô tả: Stack, Feature, Roadmap
-
-- [x] **TSK-002** `[FE_Core]` Khởi tạo NextJS App Router bằng PNPM. *(Estimate: 1h · Priority: Urgent)*
-
-  **Description:**
-  - Chạy:
-    ```bash
-    pnpm create next-app@latest frontend --typescript --tailwind --eslint --app
-    ```
-  - Chọn: TypeScript · ESLint · App Router · TailwindCSS
-  - Setup path alias `@/*`
-  - Cài thêm: `clsx`, `tailwind-merge`, `lucide-react`
-  - Dọn dẹp `page.tsx`, `global.css` mặc định của NextJS
-
-- [x] **TSK-003** `[FE_Map]` Cài đặt Leaflet + React Leaflet. *(Estimate: 30m · Priority: Urgent)*
-
-  **Description:**
-  - Install:
-    ```bash
-    pnpm add leaflet react-leaflet
-    pnpm add -D @types/leaflet
-    ```
-  - Sửa lỗi thiếu CSS của Leaflet (import `leaflet/dist/leaflet.css` vào `layout.tsx` hoặc `globals.css`)
-  - Fix default icon issue (override icon mặc định của Leaflet khi dùng với NextJS)
-
-- [x] **TSK-004** `[FE_Map]` Render bản đồ nội thành TP.HCM. *(Estimate: 2h · Priority: Urgent)*
-
-  **Description:**
-  - Tạo component `MapView.tsx` với `"use client"`
-  - Dùng Tile Layer của OpenStreetMap (https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png).
-  - Center: `[10.7769, 106.7009]` · Zoom: `14`
-  - Verify: zoom, drag, tile loading mượt mà
-
-- [x] **TSK-005** `[FE_Map]` Thêm marker interaction (click chọn điểm). *(Estimate: 2h · Priority: High)*
-
-  **Description:**
-  - Lắng nghe sự kiện `useMapEvents` của React-Leaflet.
-  - Click lần 1 -> Đặt marker màu xanh (Điểm xuất phát).
-  - Click lần 2 -> Đặt marker màu đỏ (Điểm kết thúc).
-  - Lưu state: `startPoint`, `endPoint` (lat/lng)
+> Đổi tên "Dev A/B/C" thành tên thật khi phân task trên Github Issue/Project board. Task nào đánh dấu `[Blocking]` nghĩa là người khác đang chờ để làm tiếp — ưu tiên làm trước trong ngày.
 
 ---
 
-# DAY 2 — BACKEND + DATABASE + OSM DATA
+# SPRINT 0 — NỀN TẢNG CHUNG (cả 3 người cùng thống nhất trước khi tách track)
 
-- [ ] **TSK-006** `[BE_Core]` Khởi tạo Golang Backend với FastAPI. *(Estimate: 1h · Priority: Urgent)*
+- [x] **TSK-001** `[PM/Setup]` Khởi tạo Git repo + branch `main`/`dev`, add Collaborator cho cả 3 người. *(Estimate: 0.5h · Priority: Urgent)*
 
-  **Description:**
-  - Setup môi trường ảo (`venv`): `python -m venv venv`
-  - Tạo `requirement.txt` và cài đặt thư viện: `fastapi`, `uvicorn`, `psycopg2-binary`.
-  - Tạo file `main.py`, khởi tạo `app = FastAPI()` và cấu hình `CORS`.
-  - Tạo API test `GET /api/v1/ping`.
-    ```
+- [x] **TSK-002** `[BE_Core]` Khởi tạo `pom.xml` (Spring Boot 3.3.2, Java 21) + `StayHubApplication.java`. *(Estimate: 1h · Priority: Urgent)*
 
-- [x] **TSK-007** `[Infra]` Setup PostgreSQL + PostGIS bằng Docker Compose. *(Estimate: 1.5h · Priority: Urgent)*
+- [ ] **TSK-003** `[Infra]` `Dockerfile` (multi-stage Maven build → JRE runtime) + `docker-compose.yml` (Postgres). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
 
-  **Description:**
-  - Viết `docker-compose.yml` ở root
-  - Image: `postgis/postgis:15-3.4`
-  - Setup môi trường: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-  - Map port `5432:5432`  
-  - Tạo database connection từ Go (dùng `pgx` hoặc `GORM`).
+- [ ] **TSK-004** `[Infra]` `.gitignore`, `.dockerignore`, tách `application.yml` / `application-local.yml` / `application-docker.yml`. *(Estimate: 1h · Priority: Urgent · Blocking)*
 
-- [x] **TSK-008** `[Data]` Download OpenStreetMap Data TP.HCM. *(Estimate: 1h · Priority: Urgent)*
+- [ ] **TSK-005** `[FE_Core]` Setup `tailwind.config.js` build pipeline (npm/CLI), output CSS vào `static/css/`. *(Estimate: 1h · Priority: High)*
 
-  **Description:**
-  - Download file `.osm.pbf` từ [BBBike](https://extract.bbbike.org/) (chọn custom bounding box để cắt đúng khung nội thành HCM).
-  - Lưu vào `/data/hcm.osm.pbf`
+- [ ] **TSK-006** `[BE_Core]` Package `common/response`: tạo `ApiResponse<T>` chuẩn theo `rules.md` mục 4. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
 
-- [x] **TSK-009** `[Data]` Import OSM vào PostGIS bằng `osm2pgsql`. *(Estimate: 2h - Priority: Urgent)*
+- [ ] **TSK-007** `[BE_Core]` Package `common/exception`: `GlobalExceptionHandler` (`@RestControllerAdvice`) + các exception dùng chung (`ResourceNotFoundException`, `BusinessException`...). *(Estimate: 1h · Priority: Urgent · Blocking)*
 
-  **Description:**
-  - Chạy tool `osm2pgsql` (khuyên dùng qua Docker image để không cần cài tool).
-  - Lệnh tham khảo: 
-    ```bash
-    osm2pgsql -d my_db -U user -H localhost -W -S default.style hcm.osm.pbf
-    ```
-  - Check database, đảm bảo các bảng `planet_osm_point` và `planet_osm_line` đã có dữ liệu.
+- [ ] **TSK-008** `[BE_Core]` Package `common/validation` + `common/util`: custom validator (vd: check-in phải trước check-out), `DateUtil`, `PriceUtil`. *(Estimate: 1h · Priority: Medium)*
+
+- [ ] **TSK-009** `[BE_Core]` `common` chứa `BaseEntity` (id, createdAt, updatedAt) — dùng chung cho mọi entity ở 3 track. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
+
+- [ ] **TSK-010** `[DB]` Migration `V1__create_users.sql` (bảng `users`: id, email, password_hash, full_name, phone, role, created_at). *(Estimate: 1h · Priority: Urgent · Blocking)*
+
+- [ ] **TSK-011** `[FE_Core]` `templates/fragments/navbar.html`, `footer.html` (bản khung, chưa cần hoàn thiện logic login/logout). *(Estimate: 1h · Priority: Medium)*
+
+> Sau Sprint 0, mọi người pull `dev` mới nhất rồi tách vào track riêng.
 
 ---
 
-# DAY 3 — QUERY DATABASE + BUILD GRAPH
+# TRACK A — AUTH · USER · CORE CONFIG · ADMIN  *(Dev A)*
 
-- [x] **TSK-010** `[DB_Query]` Viết câu SQL lọc đường đi (Routing Data). *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-012** `[BE_Config]` `config/SecurityConfig.java`: session-based auth, `PasswordEncoder` (BCrypt), phân quyền theo path (`/host/**` → HOST, `/admin/**` → ADMIN). *(Estimate: 2.5h · Priority: Urgent · Blocking cho Dev B & Dev C)*
 
-  **Description:**
-  - Viết script SQL trích xuất danh sách đoạn đường (Edges) từ bảng `planet_osm_line`.
-  - Tags giữ lại: `highway IN ('primary', 'secondary', 'tertiary', 'residential', 'trunk')`.
-  - Loại bỏ: `footway`, `pedestrian`, `steps`.
-  - Trích xuất thông tin `oneway`.
-  - Dùng PostGIS tính chiều dài đường: `ST_Length(way::geography) AS distance`.
+- [ ] **TSK-013** `[BE_User]` `user/User.java` (entity extends BaseEntity), `user/dto/` (UserResponse, UpdateProfileRequest). *(Estimate: 1h · Priority: Urgent · Blocking)*
 
-- [ ] **TSK-011** `[BE_Data]` Query Data bằng Python. *(Estimate: 1h · Priority: Urgent)*
+- [ ] **TSK-014** `[BE_User]` `UserRepository`, `UserService` (đăng ký, tìm theo email, đổi mật khẩu). *(Estimate: 1.5h · Priority: Urgent)*
 
-  **Description:**
-  - Viết module `db.py` dùng `psycopg2` để kết nối tới PostgreSQL.
-  - Sử dụng hàm `cursor.fetchall()` để nạp toàn bộ kết quả SQLvào RAM dưới dạng list các Dictionary hoặc Tuples.
+- [ ] **TSK-015** `[BE_Auth]` `auth/UserPrincipal.java` (implements `UserDetails`) + `AuthService` (load user, xác thực). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
 
-- [x] **TSK-012** `[BE_Graph]` Thiết kế Node + Edge model. *(Estimate: 1h · Priority: Urgent)*
+- [ ] **TSK-016** `[BE_Auth]` `auth/AuthController.java`: `GET/POST /register`, `GET /login`, `POST /logout` + `auth/dto/RegisterRequest`. *(Estimate: 2h · Priority: Urgent)*
 
-  **Description:**
-  - Dùng `dataclass` để định nghĩa:
-    ```py
-    class Node:
-        id: int
-        lat: float
-        lng: float
+- [ ] **TSK-017** `[FE_Auth]` `templates/auth/login.html`, `register.html`. *(Estimate: 2h · Priority: High)*
 
-    class Edge:
-        to_node: int
-        weight: float
-    ```
+- [ ] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). *(Estimate: 1h · Priority: Medium)*
 
-- [x] **TSK-013** `[BE_Graph]` Build adjacency list graph vào Memory. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-019** `[DB]` Migration cho quyền hạn nếu cần (vd: thêm cột `status` cho user bị khoá) — tuỳ phát sinh. *(Estimate: 0.5h · Priority: Low)*
 
-  **Description:**
-  - Viết hàm `build_graph()` đọc JSON tọa độ.
-  - Khởi tạo `nodes: dict[int, Node]` và `edges: dict[int, list[Edge]]`.
-  - Xử lý `oneway=yes`: chỉ nối 1 chiều (A -> B). Nếu rỗng nối cả 2 chiều.
-  - Chạy hàm này 1 lần duy nhất bằng Event `@app.on_event("startup")` của FastAPI.
+- [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan (tổng users, hosts, bookings, revenue). *(Estimate: 3h · Priority: Medium)*
+
+- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: bảng quản lý booking toàn hệ thống (search, filter theo status). *(Estimate: 2.5h · Priority: Medium)*
+
+- [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role) — mở rộng `AdminController`. *(Estimate: 2h · Priority: Low)*
 
 ---
 
-# DAY 4 — A* IMPLEMENTATION
+# TRACK B — PROPERTY · SEARCH · HOST · STORAGE  *(Dev B)*
 
-- [x] **TSK-014** `[Algorithm]` Implement Min Heap / Priority Queue. *(Estimate: 0.5h · Priority: Urgent)*
+- [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id FK→users, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, created_at) + `property_images`, `amenities`, `property_amenities`. *(Estimate: 2h · Priority: Urgent)*
 
-  **Description:**
-  - Import module `heapq` có sẵn của Python.
-  - Cơ chế: dùng mảng `pq = []` và đẩy các tuple (`f_score, node_id`) vào thông qua `heapq.heappush(pq, (...))`.
+- [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertySummary). *(Estimate: 1.5h · Priority: Urgent)*
 
-- [x] **TSK-015** `[Algorithm]` Implement thuật toán A* (A-Star). *(Estimate: 3h · Priority: Urgent)*
+- [ ] **TSK-025** `[BE_Property]` `PropertyRepository`, `PropertyService`, `PropertyMapper` (entity ↔ dto, tránh trả Entity trực tiếp theo `rules.md`). *(Estimate: 2h · Priority: Urgent)*
 
-  **Description:**
-  - Khởi tạo từ điển `g_score`, `f_score`, và `came_from`.
-  - Viết hàm tính Haversine Distance bằng `math` của Python để làm Heuristic.
-  - Vòng lặp lấy `node_id` bằng `heapq.heappop`.
-  - Dừng sớm nếu `current == end_id`.
-  - Trả về danh sách thứ tự `node_id` và tổng khoảng cách.
+- [ ] **TSK-026** `[BE_Storage]` `storage/StorageService.java` (interface) + `LocalStorageService.java` (lưu đĩa cục bộ trước, dùng khi dev). *(Estimate: 2h · Priority: High)*
 
-- [x] **TSK-016** `[Algorithm]` Tìm Nearest Node bằng RAM (Spatial Query). *(Estimate: 1.5h · Priority: High)*
+- [ ] **TSK-027** `[BE_Storage]` `storage/CloudinaryStorageService.java` + `config/StorageConfig.java` (bean chọn implementation theo `app.upload.use-cloudinary`). *(Estimate: 2h · Priority: Medium)*
 
-  **Description:**
-  - Viết hàm `find_nearest_node(lat, lng)` trong Python.
-  - Duyệt qua toàn bộ `values()` của dictionary `nodes`.
-  - Trả về `node_id` có khoảng cách Haversine ngắn nhất so với tọa độ click.
+- [ ] **TSK-028** `[BE_Property]` `PropertyController.java`: `GET /` (home), `GET /properties/{id}` (property detail). *(Estimate: 1.5h · Priority: Urgent)*
 
----
+- [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests), popular destinations, featured properties — theo `flow.md`. *(Estimate: 2.5h · Priority: Urgent)*
 
-# DAY 5 — ROUTING API & SEARCH
+- [ ] **TSK-030** `[BE_Search]` `search/SearchController.java`, `SearchService.java`, `SearchRepository.java`, `search/dto/SearchCriteria`: `GET /properties?location=&checkIn=&checkOut=&guests=` + filter (price, type, bedrooms, amenities, rating) + sort + pagination. *(Estimate: 3.5h · Priority: Urgent)*
 
-- [x] **TSK-017** `[BE_API]` Tạo endpoint `GET /api/v1/route`. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-031** `[FE_Property]` `templates/property/search-results.html` (filter sidebar + property list) theo layout `flow.md`. *(Estimate: 3h · Priority: Urgent)*
 
-  **Description:**
-  - Dùng FastAPI khai báo: `@app.get("/api/v1/routes")`.
-  - Nhận query params: `startLat`, `startLng`, `endLat`, `endLng`.
-  - Flow: `find_nearest_node()` → `a_star()` → format lại toạ độ list.
+- [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh, description, amenities, reviews, price box. *(Estimate: 3h · Priority: Urgent)*
 
-- [x] **TSK-018** `[BE_API]` Return GeoJSON / JSON route response. *(Estimate: 1h · Priority: High)*
+- [ ] **TSK-033** `[BE_Host]` `host/HostController.java`, `HostService.java`, `host/dto/`: CRUD property của host (`GET/POST /host/properties`, upload ảnh qua `StorageService`). *(Estimate: 3h · Priority: High)*
 
-  **Description:**
-  - Response format:
-    ```json
-    {
-        "success": true,
-        "message": "Tìm đường thành công",
-        "data": {
-            "distance": 1200.5,
-            "duration": 240,
-            "path": [[10.776, 106.700], ...]
-        },
-        "errorCode": null
-    }
-    ```
-
-- [x] **TSK-019** `[BE_API]` API Tìm kiếm địa điểm (Proxy Nominatim). *(Estimate: 2h · Priority: Medium)*
-
-  **Description:**
-  - Tạo `@app.get("/api/v1/search")`.
-  - Dùng thư viện `httpx` hoặc `requests` để gọi API Nominatim OSM.
-  - Bắt buộc gắn header `User-Agent`.
-  - Lọc response và trả về 5 kết quả đầu tiên.
-
-- [ ] **TSK-020** `[BE_API]` Error handling + logging cơ bản. *(Estimate: 1h · Priority: Medium)*
-
-  **Description:**
-  - Validate tham số đầu vào.
-  - Trả lỗi 404 (Không tìm thấy đường) hoặc 400 (Thiếu tọa độ) thông qua `HTTPException` .
+- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: danh sách property của host + danh sách booking request (dữ liệu booking request lấy từ API bên Track C, xem TSK-041). *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
 
 ---
 
-# DAY 6 — FRONTEND ROUTING UI
+# TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION  *(Dev C)*
 
-- [x] **TSK-021** `[FE_Search]` Làm UI ô tìm kiếm (Autocomplete). *(Estimate: 2h · Priority: High)*
+- [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, total_price, status, created_at). *(Estimate: 1h · Priority: Urgent · phụ thuộc TSK-023 của Dev B đã có bảng `properties`)*
 
-  **Description:**
-  - Tạo 2 input: Điểm đi, Điểm đến.
-  - Gõ text -> debounce -> fetch `GET /api/v1/search` -> hiện list dropdown.
-  - Click vào kết quả -> Update map marker và lưu State.
+- [ ] **TSK-036** `[BE_Booking]` `booking/Booking.java`, `booking/BookingStatus.java` (`PENDING/CONFIRMED/CANCELLED/REJECTED/COMPLETED`), `booking/dto/`. *(Estimate: 1.5h · Priority: Urgent)*
 
-- [x] **TSK-022** `[FE_Routing]` Call backend routing API từ NextJS. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-037** `[BE_Booking]` `BookingRepository`, `BookingService` (tạo booking, check overlap ngày), `BookingPriceService` (tính `price × nights + cleaning fee + service fee`). *(Estimate: 3h · Priority: Urgent)*
 
-  **Description:**
-  - Trigger API khi ấn nút "Tìm đường" (đã có đủ `startPoint` + `endPoint`).
-  - Loading state: spinner overlay trên màn hình.
-  - Error state: dùng `sonner` hoặc `react-toastify` để hiện thông báo lỗi.
+- [ ] **TSK-038** `[BE_Booking]` AJAX `POST /api/v1/bookings/check-availability` — dùng `ApiResponse<T>`, `errorCode = "ERR_ROOM_NOT_AVAILABLE"` nếu trùng ngày. *(Estimate: 1.5h · Priority: Urgent)*
 
-- [x] **TSK-023** `[FE_Routing]` Draw route polyline trên Leaflet. *(Estimate: 1.5h · Priority: Urgent)*
+- [ ] **TSK-039** `[BE_Booking]` `BookingController.java`: `GET /properties/{id}/book` → `booking.html`, `POST /bookings`. *(Estimate: 2h · Priority: Urgent)*
 
-  **Description:**
-  - Trích xuất mảng `path` từ API.
-  - Render:
-    ```tsx
-    <Polyline positions={path} color="#2563EB" weight={5} />
-    ```
-  - Auto `fitBounds` để zoom map vừa khít với đường đi.
-  - Clear polyline cũ khi tìm đường mới.
+- [ ] **TSK-040** `[FE_Booking]` `templates/booking/booking.html` + `payment.html`: Your booking, Guest details, Price summary, nút "Confirm & Pay" theo `flow.md`. *(Estimate: 3h · Priority: Urgent)*
 
-- [x] **TSK-024** `[FE_UI]` Hiển thị route information. *(Estimate: 1h · Priority: Medium)*
+- [ ] **TSK-041** `[BE_Payment]` `payment/Payment.java`, `PaymentStatus.java`, `PaymentMethod.java` + Migration `V4__create_payments.sql`. *(Estimate: 1h · Priority: Urgent)*
 
-  **Description:**
-  - Panel nổi (overlay UI) hiển thị: Quãng đường (x.x km) + Thời gian dự kiến (x phút).
-  - Nút: Clear / Đặt lại bản đồ.
+- [ ] **TSK-042** `[BE_Payment]` `payment/MockPaymentService.java` (implements `PaymentService`): set `payment_method = MOCK`, `status = SUCCESS` ngay lập tức. *(Estimate: 1.5h · Priority: Urgent)*
+
+- [ ] **TSK-043** `[BE_Booking]` Flow `Confirm & Pay → Payment Success → Create Booking (PENDING)` đúng sơ đồ `flow.md`; expose API cho Dev B lấy "booking requests theo host" (phục vụ TSK-034). *(Estimate: 2h · Priority: Urgent · Blocking cho Dev B)*
+
+- [ ] **TSK-044** `[BE_Booking]` API accept/reject cho host (`PENDING → CONFIRMED/REJECTED`), cancel cho guest (`PENDING/CONFIRMED → CANCELLED`). *(Estimate: 2h · Priority: Urgent)*
+
+- [ ] **TSK-045** `[FE_Booking]` `templates/booking/booking-detail.html` + trang "My Bookings" (tabs Upcoming/Pending/Completed/Cancelled) theo `flow.md`. *(Estimate: 3h · Priority: High)*
+
+- [ ] **TSK-046** `[DB]` Migration `V5__create_reviews.sql` (id, booking_id, rating, comment, created_at). *(Estimate: 0.5h · Priority: Medium)*
+
+- [ ] **TSK-047** `[BE_Review]` `review/Review.java`, `ReviewController.java`, `ReviewService.java`, `ReviewRepository.java`: cho phép review khi booking `COMPLETED`. *(Estimate: 2.5h · Priority: Medium)*
+
+- [ ] **TSK-048** `[BE_Notification]` `config/MailConfig.java` + `notification/NotificationService.java` (interface) + `EmailNotificationService.java`: gửi mail khi booking đổi trạng thái (CONFIRMED/REJECTED/CANCELLED). *(Estimate: 2.5h · Priority: Medium)*
 
 ---
 
-# DAY 7 — TESTING + POLISH + DEPLOY
+# INTEGRATION & DEPLOY *(cả 3 người, sau khi merge track vào `dev`)*
 
-- [ ] **TSK-025** `[Testing]` Test routing logic nhiều tuyến đường khác nhau. *(Estimate: 2h · Priority: High)*
+- [ ] **TSK-049** `[Testing]` Test end-to-end theo `flow.md`: Search → Property Detail → Check Availability → Booking → Mock Payment → PENDING → Host Accept → CONFIRMED → My Bookings → Review. *(Estimate: 2h · Priority: Urgent)*
 
-  **Description:**
-  - Test: Quận 1 → Quận 7, Quận 3 → Gò Vấp.
-  - Verify đường 1 chiều: Đảm bảo thuật toán không vẽ ngược chiều các đường như Lê Thánh Tôn, Pasteur.
-  - Test click vào những nơi không có đường bộ (Sông Sài Gòn) xem PostGIS xử lý Nearest Node thế nào.
+- [ ] **TSK-050** `[Infra]` Verify `docker compose up -d --build` chạy full stack (app + db) không lỗi, dùng `application-docker.yml`. *(Estimate: 1.5h · Priority: High)*
 
-- [ ] **TSK-026** `[Testing]` Performance test graph loading. *(Estimate: 1h · Priority: Medium)*
+- [ ] **TSK-051** `[Testing]` Review chéo giữa 3 track: kiểm tra không có entity nào bị trả trực tiếp ra view/API (đúng `rules.md` mục 5), không có `catch (Exception e) {}` rỗng. *(Estimate: 1.5h · Priority: High)*
 
-  **Description:**
-  - Đo startup time khi load graph từ DB vào memory lúc chạy Go.
-  - Đo average response time của routing API (Mục tiêu: < 300ms).
-
-- [ ] **TSK-027** `[FE_UI]` UI cleanup + responsive cơ bản. *(Estimate: 1h · Priority: Medium)*
-
-  **Description:**
-  - Dọn dẹp spacing, layout TailwindCSS.
-  - Đảm bảo trên Mobile, UI Panel input hiển thị gọn gàng (bottom sheet hoặc floating panel).
-
-- [x] **TSK-028** `[Deploy]` Dockerize frontend + backend. *(Estimate: 2h · Priority: Medium)*
-
-  **Description:**
-  - `Dockerfile` cho NextJS (multi-stage build)
-  - `Dockerfile` cho Python (alpine build nhỏ gọn)
-  - Hoàn thiện `docker-compose.yml`: Chạy 1 lệnh `docker compose up` lên cả Postgres + Backend + Frontend.
-
-- [ ] **TSK-029** `[Docs]` Update README + demo screenshots. *(Estimate: 1h · Priority: Medium)*
-
-  **Description:**
-  - Vẽ System Architecture diagram đơn giản.
-  - Setup guide step-by-step.
-  - Chụp Screenshots xịn sò nhét vào README.
+- [ ] **TSK-052** `[Docs]` Cập nhật README + screenshots, đánh dấu lại task đã hoàn thành trong `task-list.md`. *(Estimate: 1h · Priority: Medium)*
 
 ---
 
 # MVP Done Checklist
 
-- [ ] Khởi động server (DB + BE + FE) bằng Docker thành công.
-- [ ] Load Map TP.HCM mượt mà.
-- [ ] Tính năng Search chữ (Geocoding) trả kết quả đúng.
-- [ ] Click chọn 2 điểm trên map đặt được marker.
-- [ ] Chạy Dijkstra siêu tốc do Graph được cache trên RAM.
-- [ ] Đường đi bám sát mạng lưới đường giao thông (không vẽ xuyên nhà/vượt sông bừa bãi).
-- [ ] API trả về kết quả `< 500ms`.
+- [ ] Chạy được app bằng `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` sau `docker compose up -d db`.
+- [ ] Đăng ký / đăng nhập / phân quyền GUEST-HOST-ADMIN hoạt động (`SecurityConfig`).
+- [ ] Search property theo địa điểm + ngày + số khách, có filter/sort/pagination.
+- [ ] Xem property detail, check availability theo ngày trước khi đặt.
+- [ ] Đặt phòng → mock payment SUCCESS → booking status PENDING.
+- [ ] Host xem được booking request, accept/reject.
+- [ ] User xem My Bookings, cancel được booking.
+- [ ] Sau COMPLETED, user viết được review, hiển thị trên property detail.
+- [ ] Admin xem được dashboard tổng quan + danh sách booking toàn hệ thống.
+- [ ] Nhận được email khi booking đổi trạng thái.
+- [ ] `docker compose up -d --build` chạy được toàn bộ stack.
 
 ---
 
 # Post-MVP (Optional)
 
-- [x] Thuật toán A* (nhanh hơn Dijkstra ~2-5x nhờ kết hợp heuristic).
-- [ ] Redis cache những tuyến đường phổ biến.
-- [ ] Dark mode cho bản đồ (Dùng CartoDB Dark Matter tile).
-- [ ] Route animation (Hiệu ứng xe chạy theo đường nét đứt).
-- [ ] Multiple route suggestions (Gợi ý đường đi thứ 2, thứ 3).
-- [ ] Xử lý cấm rẽ (Turn restrictions - Đòi hỏi query Relation từ OSM).
+- [ ] Tích hợp thanh toán thật VNPay/Momo (thay `MockPaymentService`).
+- [ ] Wishlist (lưu property yêu thích).
+- [ ] Cache rating trung bình thay vì tính lại mỗi lần load property.
+- [ ] Export báo cáo (CSV/PDF) cho Admin.
+- [ ] Notification real-time (websocket) thay vì chỉ email.
+- [ ] Rate limiting cho `auth` (chống brute-force login).
 
 ---
