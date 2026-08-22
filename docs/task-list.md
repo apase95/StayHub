@@ -1,4 +1,4 @@
-# StayHub MVP — Task List (Team 3 người)
+# StayHub MVP — Task List
 
 ## Target Project Structure
 
@@ -38,22 +38,9 @@ StayHub/
 │       └── application-docker.yml
 ├── .dockerignore / .gitignore / Dockerfile / docker-compose.yml / pom.xml / tailwind.config.js
 ```
-
-## Phân chia công việc (3 người)
-
-Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗi người tự chủ động branch/PR trên phần của mình (đúng git flow trong `rules.md`):
-
-| | Package sở hữu | Trọng tâm |
-|---|---|---|
-| **Dev A** | `common`, `config`, `auth`, `user`, `admin` | Nền tảng, đăng nhập/phân quyền, trang admin |
-| **Dev B** | `property`, `search`, `host`, `storage` | Search, property detail, host dashboard, upload ảnh |
-| **Dev C** | `booking`, `payment`, `review`, `notification` | Đặt phòng, mock payment, review, email |
-
-> Đổi tên "Dev A/B/C" thành tên thật khi phân task trên Github Issue/Project board. Task nào đánh dấu `[Blocking]` nghĩa là người khác đang chờ để làm tiếp — ưu tiên làm trước trong ngày.
-
 ---
 
-# SPRINT 0 — NỀN TẢNG CHUNG (cả 3 người cùng thống nhất trước khi tách track)
+# SPRINT 0 — NỀN TẢNG CHUNG
 
 - [x] **TSK-001** `[PM/Setup]` Khởi tạo Git repo + branch `main`/`dev`, add Collaborator cho cả 3 người. *(Estimate: 0.5h · Priority: Urgent)*
 
@@ -81,7 +68,7 @@ Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗ
 
 ---
 
-# TRACK A — AUTH · USER · CORE CONFIG · ADMIN  *(Dev A)*
+# TRACK A — AUTH · USER · CORE CONFIG · ADMIN
 
 - [ ] **TSK-012** `[BE_Config]` `config/SecurityConfig.java`: session-based auth, `PasswordEncoder` (BCrypt), phân quyền theo path (`/host/**` → HOST, `/admin/**` → ADMIN). *(Estimate: 2.5h · Priority: Urgent · Blocking cho Dev B & Dev C)*
 
@@ -107,7 +94,7 @@ Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗ
 
 ---
 
-# TRACK B — PROPERTY · SEARCH · HOST · STORAGE  *(Dev B)*
+# TRACK B — PROPERTY · SEARCH · HOST · STORAGE
 
 - [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id FK→users, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, created_at) + `property_images`, `amenities`, `property_amenities`. *(Estimate: 2h · Priority: Urgent)*
 
@@ -135,7 +122,7 @@ Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗ
 
 ---
 
-# TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION  *(Dev C)*
+# TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION
 
 - [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, total_price, status, created_at). *(Estimate: 1h · Priority: Urgent · phụ thuộc TSK-023 của Dev B đã có bảng `properties`)*
 
@@ -167,7 +154,7 @@ Chia theo **module dọc** (vertical slice) để hạn chế đụng code, mỗ
 
 ---
 
-# INTEGRATION & DEPLOY *(cả 3 người, sau khi merge track vào `dev`)*
+# INTEGRATION & DEPLOY
 
 - [ ] **TSK-049** `[Testing]` Test end-to-end theo `flow.md`: Search → Property Detail → Check Availability → Booking → Mock Payment → PENDING → Host Accept → CONFIRMED → My Bookings → Review. *(Estimate: 2h · Priority: Urgent)*
 
