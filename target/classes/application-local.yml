@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stayhub
+    username: stayhub
+    password: stayhub
+
+  jpa:
+    show-sql: false
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
