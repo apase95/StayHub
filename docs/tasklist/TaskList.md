@@ -1,11 +1,11 @@
-# StayHub MVP — Task List
+# StayHub — Task List
 
 ## Target Project Structure
 
 ```txt
 StayHub/
 ├── .github/
-├── docs/                          # first-step.md, flow.md, rules.md, task-list.md
+├── docs/                        
 ├── src/main/
 │   ├── java/com/stayhub/
 │   │   ├── StayHubApplication.java
@@ -46,7 +46,7 @@ StayHub/
 
 - [x] **TSK-002** `[BE_Core]` Khởi tạo `pom.xml` (Spring Boot 3.3.2, Java 21) + `StayHubApplication.java`. *(Estimate: 1h · Priority: Urgent)*
 
-- [ ] **TSK-003** `[Infra]` `Dockerfile` (multi-stage Maven build → JRE runtime) + `docker-compose.yml` (Postgres). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
+- [ ] **TSK-003** `[Infra]` `Dockerfile` (multi-stage Maven build → JRE runtime) + `docker-compose.yml` (Postgres 16). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
 
 - [ ] **TSK-004** `[Infra]` `.gitignore`, `.dockerignore`, tách `application.yml` / `application-local.yml` / `application-docker.yml`. *(Estimate: 1h · Priority: Urgent · Blocking)*
 
@@ -54,17 +54,16 @@ StayHub/
 
 - [ ] **TSK-006** `[BE_Core]` Package `common/response`: tạo `ApiResponse<T>` chuẩn theo `rules.md` mục 4. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
 
-- [ ] **TSK-007** `[BE_Core]` Package `common/exception`: `GlobalExceptionHandler` (`@RestControllerAdvice`) + các exception dùng chung (`ResourceNotFoundException`, `BusinessException`...). *(Estimate: 1h · Priority: Urgent · Blocking)*
+- [ ] **TSK-007** `[BE_Core]` Package `common/exception`: `GlobalExceptionHandler` (`@RestControllerAdvice`) + các exception dùng chung (`ResourceNotFoundException`, `BusinessException`, `InvalidStateTransitionException`...). *(Estimate: 1h · Priority: Urgent · Blocking)*
 
 - [ ] **TSK-008** `[BE_Core]` Package `common/validation` + `common/util`: custom validator (vd: check-in phải trước check-out), `DateUtil`, `PriceUtil`. *(Estimate: 1h · Priority: Medium)*
 
-- [ ] **TSK-009** `[BE_Core]` `common` chứa `BaseEntity` (id, createdAt, updatedAt) — dùng chung cho mọi entity ở 3 track. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
+- [ ] **TSK-009** `[BE_Core]` `common/entity/BaseEntity` (id, createdAt, updatedAt) — dùng chung cho mọi entity*(Estimate: 0.5h · Priority: Urgent · Blocking)*
 
-- [ ] **TSK-010** `[DB]` Migration `V1__create_users.sql` (bảng `users`: id, email, password_hash, full_name, phone, role, created_at). *(Estimate: 1h · Priority: Urgent · Blocking)*
+- [ ] **TSK-010** `[DB]` Migration `V1__create_users.sql`:  bảng users (id, email, password_hash, full_name, phone, role, status, created_at, updated_at) . *(Estimate: 1h · Priority: Urgent · Blocking)*
 
 - [ ] **TSK-011** `[FE_Core]` `templates/fragments/navbar.html`, `footer.html` (bản khung, chưa cần hoàn thiện logic login/logout). *(Estimate: 1h · Priority: Medium)*
 
-> Sau Sprint 0, mọi người pull `dev` mới nhất rồi tách vào track riêng.
 
 ---
 
@@ -88,7 +87,7 @@ StayHub/
 
 - [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan (tổng users, hosts, bookings, revenue). *(Estimate: 3h · Priority: Medium)*
 
-- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: bảng quản lý booking toàn hệ thống (search, filter theo status). *(Estimate: 2.5h · Priority: Medium)*
+- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: hiển thị Stats Big Number Cards (4 cards: Users, Hosts, Bookings, Revenue) + `templates/admin/bookings.html`: bảng quản lý booking toàn hệ thống (search, filter theo status) *(Estimate: 2.5h · Priority: Medium)*
 
 - [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role) — mở rộng `AdminController`. *(Estimate: 2h · Priority: Low)*
 
@@ -96,9 +95,9 @@ StayHub/
 
 # TRACK B — PROPERTY · SEARCH · HOST · STORAGE
 
-- [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id FK→users, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, created_at) + `property_images`, `amenities`, `property_amenities`. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, status, created_at, updated_at) + `V3__create_property_images.sql` + `V4__create_amenities.sql` + `V5__create_property_amenities.sql`. *(Estimate: 2h · Priority: Urgent)*
 
-- [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertySummary). *(Estimate: 1.5h · Priority: Urgent)*
+- [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/PropertyImage.java`, `property/PropertyStatus.java`, `property/PropertyType.java` + `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertyUpdateRequest, PropertySummary, PropertyImageRequest). *(Estimate: 2h · Priority: Urgent)*
 
 - [ ] **TSK-025** `[BE_Property]` `PropertyRepository`, `PropertyService`, `PropertyMapper` (entity ↔ dto, tránh trả Entity trực tiếp theo `rules.md`). *(Estimate: 2h · Priority: Urgent)*
 
@@ -108,31 +107,31 @@ StayHub/
 
 - [ ] **TSK-028** `[BE_Property]` `PropertyController.java`: `GET /` (home), `GET /properties/{id}` (property detail). *(Estimate: 1.5h · Priority: Urgent)*
 
-- [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests), popular destinations, featured properties — theo `flow.md`. *(Estimate: 2.5h · Priority: Urgent)*
+- [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests theo UI Design System), popular destinations, featured properties, popular categories — responsive (search box chồng dọc trên mobile). *(Estimate: 2.5h · Priority: Urgent)*
 
 - [ ] **TSK-030** `[BE_Search]` `search/SearchController.java`, `SearchService.java`, `SearchRepository.java`, `search/dto/SearchCriteria`: `GET /properties?location=&checkIn=&checkOut=&guests=` + filter (price, type, bedrooms, amenities, rating) + sort + pagination. *(Estimate: 3.5h · Priority: Urgent)*
 
-- [ ] **TSK-031** `[FE_Property]` `templates/property/search-results.html` (filter sidebar + property list) theo layout `flow.md`. *(Estimate: 3h · Priority: Urgent)*
+- [ ] **TSK-031** `[FE_Property]` `templates/property/search-results.html` filter sidebar (Price Range slider, Property Type checkboxes, Bedrooms/Beds/Bathrooms, Amenities, Rating) + property list (Property Card component) + sort dropdown + pagination — responsive (filter chuyển thành dropdown trên mobile) *(Estimate: 3h · Priority: Urgent)*
 
-- [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh, description, amenities, reviews, price box. *(Estimate: 3h · Priority: Urgent)*
+- [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh (main + thumbnail grid, responsive → carousel trên mobile), description, amenities, reviews (hiển thị rating + comment), availability calendar, price box (sticky trên desktop, bottom bar trên mobile) — theo UI Design System. *(Estimate: 3h · Priority: Urgent)*
 
-- [ ] **TSK-033** `[BE_Host]` `host/HostController.java`, `HostService.java`, `host/dto/`: CRUD property của host (`GET/POST /host/properties`, upload ảnh qua `StorageService`). *(Estimate: 3h · Priority: High)*
+- [ ] **TSK-033** `[BE_Host]` `host/HostController.java`, `HostService.java`, `host/dto/`: CRUD property của host (`GET /host/properties`, `GET/POST /host/properties/new`, `GET/PUT /host/properties/{id}`, `DELETE /host/properties/{id}`), upload ảnh qua `StorageService`.  *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: danh sách property của host + danh sách booking request (dữ liệu booking request lấy từ API bên Track C, xem TSK-041). *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
+- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: danh sách property của host (với nút Add Property, Edit, Delete) + danh sách booking request (dữ liệu từ Track C) — responsive với Stats Cards. *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
 
 ---
 
 # TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION
 
-- [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, total_price, status, created_at). *(Estimate: 1h · Priority: Urgent · phụ thuộc TSK-023 của Dev B đã có bảng `properties`)*
+- [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, nightly_price, cleaning_fee, service_fee, total_price, status, created_at, updated_at, cancelled_at) — theo thiết kế database (có snapshot price). *(Estimate: 1.5h · Priority: Urgent · phụ thuộc TSK-023 của Dev B)*
 
 - [ ] **TSK-036** `[BE_Booking]` `booking/Booking.java`, `booking/BookingStatus.java` (`PENDING/CONFIRMED/CANCELLED/REJECTED/COMPLETED`), `booking/dto/`. *(Estimate: 1.5h · Priority: Urgent)*
 
-- [ ] **TSK-037** `[BE_Booking]` `BookingRepository`, `BookingService` (tạo booking, check overlap ngày), `BookingPriceService` (tính `price × nights + cleaning fee + service fee`). *(Estimate: 3h · Priority: Urgent)*
+- [ ] **TSK-037** `[BE_Booking]` `BookingRepository` (custom methods: findConflictingBookings, findByGuestId, findByPropertyIdAndStatus, findBookingRequestsByHost), `BookingService` (create booking, check overlap ngày), BookingPriceService (tính `price × nights + cleaning_fee + service_fee`). *(Estimate: 3h · Priority: Urgent)*
 
 - [ ] **TSK-038** `[BE_Booking]` AJAX `POST /api/v1/bookings/check-availability` — dùng `ApiResponse<T>`, `errorCode = "ERR_ROOM_NOT_AVAILABLE"` nếu trùng ngày. *(Estimate: 1.5h · Priority: Urgent)*
 
-- [ ] **TSK-039** `[BE_Booking]` `BookingController.java`: `GET /properties/{id}/book` → `booking.html`, `POST /bookings`. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-039** `[BE_Booking]` `BookingController.java`: `GET /properties/{id}/book` → `booking.html`, `POST /bookings` (tạo booking + gọi Payment). *(Estimate: 2h · Priority: Urgent)*
 
 - [ ] **TSK-040** `[FE_Booking]` `templates/booking/booking.html` + `payment.html`: Your booking, Guest details, Price summary, nút "Confirm & Pay" theo `flow.md`. *(Estimate: 3h · Priority: Urgent)*
 
@@ -142,15 +141,15 @@ StayHub/
 
 - [ ] **TSK-043** `[BE_Booking]` Flow `Confirm & Pay → Payment Success → Create Booking (PENDING)` đúng sơ đồ `flow.md`; expose API cho Dev B lấy "booking requests theo host" (phục vụ TSK-034). *(Estimate: 2h · Priority: Urgent · Blocking cho Dev B)*
 
-- [ ] **TSK-044** `[BE_Booking]` API accept/reject cho host (`PENDING → CONFIRMED/REJECTED`), cancel cho guest (`PENDING/CONFIRMED → CANCELLED`). *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-044** `[BE_Booking]` API accept/reject cho host (`PENDING → CONFIRMED/REJECTED`) + kiểm tra state transition hợp lệ, cancel cho guest (`PENDING/CONFIRMED → CANCELLED`). *(Estimate: 2h · Priority: Urgent)*
 
 - [ ] **TSK-045** `[FE_Booking]` `templates/booking/booking-detail.html` + trang "My Bookings" (tabs Upcoming/Pending/Completed/Cancelled) theo `flow.md`. *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-046** `[DB]` Migration `V5__create_reviews.sql` (id, booking_id, rating, comment, created_at). *(Estimate: 0.5h · Priority: Medium)*
+- [ ] **TSK-046** `[DB]` Migration `V8__create_reviews.sql`: bảng `reviews` (id, booking_id UNIQUE, property_id, guest_id, rating SMALLINT CHECK 1-5, comment, created_at, updated_at) — theo thiết kế database.. *(Estimate: 0.5h · Priority: Medium)*
 
-- [ ] **TSK-047** `[BE_Review]` `review/Review.java`, `ReviewController.java`, `ReviewService.java`, `ReviewRepository.java`: cho phép review khi booking `COMPLETED`. *(Estimate: 2.5h · Priority: Medium)*
+- [ ] **TSK-047** `[BE_Review]` `review/Review.java`, `ReviewController.java`, `ReviewService.java`, `ReviewRepository.java`: cho phép review khi booking `COMPLETED`, cập nhật `rating_avg` của property sau khi review mới. *(Estimate: 2.5h · Priority: Medium)*
 
-- [ ] **TSK-048** `[BE_Notification]` `config/MailConfig.java` + `notification/NotificationService.java` (interface) + `EmailNotificationService.java`: gửi mail khi booking đổi trạng thái (CONFIRMED/REJECTED/CANCELLED). *(Estimate: 2.5h · Priority: Medium)*
+- [ ] **TSK-048** `[BE_Notification]` `config/MailConfig.java` + `notification/NotificationService.java` (interface) + `EmailNotificationService.java`: gửi mail khi booking đổi trạng thái (CONFIRMED/REJECTED/CANCELLED) bao gồm booking info template. *(Estimate: 2.5h · Priority: Medium)*
 
 ---
 
@@ -166,7 +165,7 @@ StayHub/
 
 ---
 
-# MVP Done Checklist
+# Project Done Checklist
 
 - [ ] Chạy được app bằng `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` sau `docker compose up -d db`.
 - [ ] Đăng ký / đăng nhập / phân quyền GUEST-HOST-ADMIN hoạt động (`SecurityConfig`).
