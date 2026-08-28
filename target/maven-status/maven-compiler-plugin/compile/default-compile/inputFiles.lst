@@ -2,6 +2,8 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/UserPrincipal.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/common/entity/BaseEntity.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/common/response/ApiResponse.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/config/MailConfig.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/config/SecurityConfig.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/config/StorageConfig.java
