@@ -2,33 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>StayHub - Trang chủ</title>
-</head>
-<body>
-    <h1>Trang chủ StayHub đã hoạt động!</h1>
-    <p th:text="${message}"></p> 
-</body>
-</html><!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StayHub - Discover Your Perfect Getaway</title>
-    <!-- Nhúng file Tailwind CSS đã build -->
+    <!-- Tailwind CSS -->
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
 </head>
-<body class="bg-bg-white text-text-900 font-sans flex flex-col min-h-screen">
+<body class="bg-bg-white text-text-900 font-sans flex flex-col min-h-screen m-0 p-0">
     
-    <!-- Nhúng Navbar -->
+    <!-- Navbar Fragment -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <!-- Nội dung chính -->
+    <!-- Main Content -->
     <main class="flex-grow max-w-7xl mx-auto px-6 lg:px-10 w-full mt-8">
         <h1 class="text-4xl font-bold text-primary-500 mb-4">Trang chủ StayHub đã hoạt động!</h1>
-        <p class="text-text-gray text-lg" th:text="${message}">Lời chào từ Controller sẽ hiện ở đây</p>
+        <p class="text-text-gray text-lg" th:text="${message}"></p>
     </main>
 
-    <!-- Nhúng Footer -->
+    <!-- Footer Fragment -->
     <div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
