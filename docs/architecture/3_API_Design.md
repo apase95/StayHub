@@ -109,7 +109,7 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 ### 5.1. Kiểm tra khả dụng
 
 **Request:**
-```
+```json
 POST /api/v1/bookings/check-availability
 Content-Type: application/json
 
@@ -151,7 +151,6 @@ Content-Type: application/json
 ```
 POST /bookings
 Content-Type: application/x-www-form-urlencoded (hoặc JSON)
-
 propertyId=1&checkIn=2026-09-22&checkOut=2026-09-25&guests=2
 ```
 
