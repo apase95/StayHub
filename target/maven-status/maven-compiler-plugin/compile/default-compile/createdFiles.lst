@@ -1,3 +1,6 @@
 com/stayhub/StayhubApplication.class
 com/stayhub/home/HomeController.class
+com/stayhub/common/response/ApiResponse$ApiResponseBuilder.class
+com/stayhub/common/response/ApiResponse.class
 com/stayhub/config/SecurityConfig.class
+com/stayhub/common/entity/BaseEntity.class

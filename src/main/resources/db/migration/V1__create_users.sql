@@ -1,0 +1,16 @@
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(30),
+    role VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('GUEST', 'HOST', 'ADMIN'));
+ALTER TABLE users ADD CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'LOCKED', 'INACTIVE'));
+
+CREATE UNIQUE INDEX uk_users_email ON users(email);
