@@ -1,7 +1,9 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/StayhubApplication.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/CustomUserDetailsService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/UserPrincipal.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/dto/RegisterRequest.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/common/entity/BaseEntity.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/common/exception/BusinessException.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/common/exception/GlobalExceptionHandler.java
@@ -17,3 +19,11 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/config/SecurityConfig.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/config/StorageConfig.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/home/HomeController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/User.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRepository.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRole.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserServiceImpl.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserStatus.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/dto/UpdateProfileRequest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/dto/UserResponse.java
