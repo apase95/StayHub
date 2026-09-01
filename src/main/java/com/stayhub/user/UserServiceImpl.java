@@ -1,5 +1,7 @@
 package com.stayhub.user;
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,5 +71,31 @@ public class UserServiceImpl implements UserService {
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
         return userRepository.save(user);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }   
+
+    @Override
+    @Transactional
+    public void lockUser(Long userId) {
+        User user = findById(userId);
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new BusinessException("ERR_LOCK_ADMIN", "Cannot lock an admin account.");
+        }
+        user.setStatus(UserStatus.LOCKED);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void unlockUser(Long userId) {
+        User user = findById(userId);
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
     }
 }

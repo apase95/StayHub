@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Users - StayHub Admin</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-bg-light text-text-900 font-sans flex min-h-screen">
+
+    <!-- Admin Sidebar -->
+    <aside class="w-64 bg-bg-white border-r border-border flex flex-col hidden md:flex">
+        <div class="h-16 flex items-center px-6 border-b border-border">
+            <span class="text-xl font-bold text-primary-500">StayHub Admin</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a th:href="@{/admin/bookings}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition">
+                Dashboard & Bookings
+            </a>
+            <a th:href="@{/admin/users}" class="block px-4 py-3 rounded-lg bg-primary-500 bg-opacity-10 text-primary-600 font-semibold">
+                Manage Users
+            </a>
+            <a th:href="@{/}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition mt-auto">
+                Back to Website
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8" x-data="userManagement()">
+        <h1 class="text-2xl font-bold mb-6">User Management</h1>
+
+        <div class="bg-bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-bg-light border-b border-border">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold text-sm">ID</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Full Name</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Email</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Role</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Status</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    <!-- Loop through users -->
+                    <tr th:each="user : ${users}" class="hover:bg-bg-light transition">
+                        <td class="px-6 py-4 text-sm text-text-gray" th:text="${user.id}">1</td>
+                        <td class="px-6 py-4 text-sm font-semibold" th:text="${user.fullName}">John Doe</td>
+                        <td class="px-6 py-4 text-sm text-text-gray" th:text="${user.email}">john@example.com</td>
+                        
+                        <!-- Role Badge -->
+                        <td class="px-6 py-4">
+                            <span th:text="${user.role}" 
+                                  class="px-3 py-1 rounded-full text-xs font-bold bg-primary-500 bg-opacity-10 text-primary-600">
+                            </span>
+                        </td>
+                        
+                        <!-- Status Badge -->
+                        <td class="px-6 py-4">
+                            <span th:text="${user.status}" 
+                                  th:classappend="${user.status.name() == 'ACTIVE' ? 'bg-success-500 bg-opacity-10 text-success-500' : 'bg-text-gray bg-opacity-10 text-text-gray'}"
+                                  class="px-3 py-1 rounded-full text-xs font-bold">
+                            </span>
+                        </td>
+                        
+                        <!-- Actions (Lock/Unlock) -->
+                        <td class="px-6 py-4">
+                            <button th:if="${user.status.name() == 'ACTIVE' and user.role.name() != 'ADMIN'}" 
+                                    @click="toggleStatus([[${user.id}]], 'lock')"
+                                    class="text-sm font-semibold text-primary-500 hover:underline">
+                                Lock
+                            </button>
+                            <button th:if="${user.status.name() == 'LOCKED'}" 
+                                    @click="toggleStatus([[${user.id}]], 'unlock')"
+                                    class="text-sm font-semibold text-success-500 hover:underline">
+                                Unlock
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Alpine.js logic for API calls -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('userManagement', () => ({
+                toggleStatus(userId, action) {
+                    if(!confirm(`Are you sure you want to ${action} this user?`)) return;
+                    
+                    fetch(`/api/v1/admin/users/${userId}/${action}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            window.location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            }))
+        })
+    </script>
+</body>
+</html>
