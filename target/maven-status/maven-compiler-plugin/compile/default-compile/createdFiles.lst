@@ -23,6 +23,7 @@ com/stayhub/common/exception/ResourceNotFoundException.class
 com/stayhub/user/dto/UserResponse.class
 com/stayhub/user/UserRole.class
 com/stayhub/common/validation/DateRangeValidator.class
+com/stayhub/auth/AuthController.class
 com/stayhub/config/SecurityConfig.class
 com/stayhub/auth/CustomUserDetailsService.class
 com/stayhub/user/dto/UpdateProfileRequest.class
