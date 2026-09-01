@@ -20,6 +20,8 @@ public class UserPrincipal implements UserDetails {
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
     private final UserStatus status;
+    
+    private final String fullName;
 
     
     public static UserPrincipal create(User user) {
@@ -30,7 +32,8 @@ public class UserPrincipal implements UserDetails {
                 user.getEmail(),
                 user.getPasswordHash(),
                 Collections.singletonList(authority),
-                user.getStatus()
+                user.getStatus(),
+                user.getFullName()
         );
     }
 
