@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="bg-bg-light text-text-900 font-sans flex min-h-screen">
+
+    <!-- Simple Admin Sidebar (Temporary for navigation) -->
+    <aside class="w-64 bg-bg-white border-r border-border flex flex-col hidden md:flex">
+        <div class="h-16 flex items-center px-6 border-b border-border">
+            <span class="text-xl font-bold text-primary-500">StayHub Admin</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a th:href="@{/admin/bookings}" class="block px-4 py-3 rounded-lg bg-primary-500 bg-opacity-10 text-primary-600 font-semibold">
+                Dashboard & Bookings
+            </a>
+            <a th:href="@{/admin/users}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition">
+                Manage Users
+            </a>
+            <a th:href="@{/}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition mt-auto">
+                Back to Website
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8">
+        <h1 class="text-2xl font-bold mb-6">Platform Overview</h1>
+
+        <!-- Stats Big Number Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
+                <p class="text-sm text-text-gray mb-2">Total Users</p>
+                <h3 class="text-3xl font-bold" th:text="${stats.totalUsers}">0</h3>
+            </div>
+            <!-- Active Hosts -->
+            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
+                <p class="text-sm text-text-gray mb-2">Active Hosts</p>
+                <h3 class="text-3xl font-bold" th:text="${stats.activeHosts}">0</h3>
+            </div>
+            <!-- Platform Revenue -->
+            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
+                <p class="text-sm text-text-gray mb-2">Platform Revenue</p>
+                <h3 class="text-3xl font-bold text-success-500" th:text="'$' + ${stats.platformRevenue}">$0</h3>
+            </div>
+            <!-- Total Bookings -->
+            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
+                <p class="text-sm text-text-gray mb-2">Total Bookings</p>
+                <h3 class="text-3xl font-bold" th:text="${stats.totalBookings}">0</h3>
+            </div>
+        </div>
+
+        <!-- Bookings Table Placeholder -->
+        <div class="bg-bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-border">
+                <h2 class="text-lg font-bold">Recent Bookings (Coming in Track C)</h2>
+            </div>
+            <div class="p-6 text-center text-text-gray">
+                Real booking data will be displayed here once Track C is completed.
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
