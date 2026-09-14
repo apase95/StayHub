@@ -49,6 +49,8 @@
 | **Testcontainers** | Integration testing với database thật | Chạy container database trong test, đảm bảo test chạy đúng với PostgreSQL thật (không dùng H2). |
 | **Spring Boot Test** | Testing web layer, controller, security | Hỗ trợ các annotation như `@WebMvcTest`, `@DataJpaTest`, `@SpringBootTest`. |
 
+Integration tests chạy PostgreSQL 16 qua Testcontainers, giữ Flyway bật và `ddl-auto=validate`; không dùng H2. Docker daemon phải hoạt động khi chạy `./mvnw verify`.
+
 ## 6. Lý do lựa chọn tổng quát
 
 - **Java + Spring Boot**: Lựa chọn phổ biến cho các ứng dụng enterprise, cộng đồng lớn, tài liệu phong phú, dễ tuyển dụng.

@@ -7,7 +7,7 @@
    - [Git](https://git-scm.com/)
    - **JDK 21** (hoặc bản LTS mới nhất project đang dùng)
    - **Maven** (hoặc dùng `./mvnw` có sẵn trong repo, không cần cài riêng)
-   - **PostgreSQL** (hoặc Docker để chạy Postgres qua container — khuyến khích dùng Docker cho gọn)
+    - **Docker + Docker Compose** (dùng cho PostgreSQL 16 và integration tests)
 2. **[QUAN TRỌNG]** Nhắn username Github của bạn để add quyền **Collaborator**.
 3. Mở Terminal (hoặc Git Bash / VS Code Terminal / IntelliJ Terminal) lên để bắt đầu.
 
@@ -56,17 +56,38 @@ git checkout -b feature/TSK-010
 Trước khi bắt đầu sửa code, hãy đảm bảo project chạy được trên máy bạn:
 
 ```bash
-# Nếu dùng Docker Compose để chạy Postgres (khuyến khích)
-docker compose up -d db
+# Tạo file biến môi trường local; không commit file .env
+cp .env.example .env
 
-# Copy file cấu hình mẫu và điền thông tin kết nối DB, mail... của bạn
-cp src/main/resources/application-example.yml src/main/resources/application-local.yml
+# Export biến môi trường để Maven đọc được DB_PASSWORD
+set -a
+source .env
+set +a
+
+# Chạy PostgreSQL 16
+docker compose --env-file .env up -d db
 
 # Chạy ứng dụng Spring Boot (dùng Maven wrapper, không cần cài Maven riêng)
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 Mặc định ứng dụng chạy tại `http://localhost:8080`. Thymeleaf sẽ tự reload lại view khi bạn sửa file `.html` (nếu bật devtools), nhưng nếu sửa code Java thì cần chạy lại app.
+
+Chạy test (integration test yêu cầu Docker daemon đang hoạt động):
+
+```bash
+./mvnw verify
+```
+
+Chạy toàn bộ app và database bằng container:
+
+```bash
+docker compose --env-file .env up -d --build
+```
+
+Compose dùng volume `pgdata_v16`. Nếu máy đã có dữ liệu từ PostgreSQL 15 trong volume `pgdata`, không gắn volume đó trực tiếp vào PostgreSQL 16. Hãy giữ volume cũ, chạy PostgreSQL 15 để `pg_dump`, sau đó restore dump vào PostgreSQL 16; hoặc dùng quy trình `pg_upgrade` có kiểm soát.
+
+Để tạo Admin đầu tiên, điền `ADMIN_EMAIL`, `ADMIN_PASSWORD`, đặt `ADMIN_BOOTSTRAP_ENABLED=true`, khởi động app một lần, sau đó tắt flag và xoá/rotate bootstrap password. Initializer không nâng quyền một tài khoản Guest/Host đã tồn tại.
 
 ---
 

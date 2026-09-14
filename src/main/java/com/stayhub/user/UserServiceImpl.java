@@ -1,14 +1,15 @@
 package com.stayhub.user;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.stayhub.auth.dto.RegisterRequest;
 import com.stayhub.common.exception.BusinessException;
 import com.stayhub.common.exception.ResourceNotFoundException;
 import com.stayhub.user.dto.UpdateProfileRequest;
+import com.stayhub.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 
 
@@ -18,43 +19,24 @@ public class UserServiceImpl implements UserService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Override
-    @Transactional
-    public User register(RegisterRequest req) {
-        if (userRepository.existsByEmail(req.getEmail())) {
-            throw new BusinessException("ERR_EMAIL_EXISTS", "Email is already registerd");
-        }
-
-        User user = User.builder()
-                .email(req.getEmail())
-                .passwordHash(passwordEncoder.encode(req.getPassword()))
-                .fullName(req.getFullName())
-                .role(UserRole.GUEST)
-                .status(UserStatus.ACTIVE)
-                .build();
-            
-        return userRepository.save(user);
+    @Transactional(readOnly = true)
+    public UserResponse findByEmail(String email) {
+        return userMapper.toResponse(findEntityByEmail(email));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+    public UserResponse findById(Long id) {
+        return userMapper.toResponse(findEntityById(id));
     }
 
     @Override
     @Transactional
     public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = findById(userId);
+        User user = findEntityById(userId);
         
         if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
             throw new BusinessException("ERR_INVALID_PASSWORD", "Incorrect old password.");
@@ -66,24 +48,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateProfile(Long userId, UpdateProfileRequest request) {
-        User user = findById(userId);
-        user.setFullName(request.getFullName());
+    public UserResponse updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = findEntityById(userId);
+        user.setFullName(request.getFullName().trim());
         user.setPhone(request.getPhone());
-        return userRepository.save(user);
+        return userMapper.toResponse(userRepository.save(user));
     }
 
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<UserResponse> getUsers(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        PageRequest pageable = PageRequest.of(
+                safePage,
+                safeSize,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+        );
+        return userRepository.findAll(pageable).map(userMapper::toResponse);
     }   
 
     @Override
     @Transactional
     public void lockUser(Long userId) {
-        User user = findById(userId);
+        User user = findEntityById(userId);
         if (user.getRole() == UserRole.ADMIN) {
             throw new BusinessException("ERR_LOCK_ADMIN", "Cannot lock an admin account.");
         }
@@ -94,8 +83,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void unlockUser(Long userId) {
-        User user = findById(userId);
+        User user = findEntityById(userId);
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
+    }
+
+    private User findEntityByEmail(String email) {
+        String normalizedEmail = EmailNormalizer.normalize(email);
+        return userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + normalizedEmail));
+    }
+
+    private User findEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
     }
 }

@@ -1,19 +1,17 @@
 package com.stayhub.user;
 
-import java.util.List;
-
-import com.stayhub.auth.dto.RegisterRequest;
 import com.stayhub.user.dto.UpdateProfileRequest;
+import com.stayhub.user.dto.UserResponse;
+import org.springframework.data.domain.Page;
 
 
 public interface UserService {
     
-    User register(RegisterRequest request);
-    User findByEmail(String email);
-    User findById(Long id);
+    UserResponse findByEmail(String email);
+    UserResponse findById(Long id);
     void changePassword(Long userId, String oldPassword, String newPassword);
-    User updateProfile(Long userId, UpdateProfileRequest request);
-    List<User> getAllUsers();
+    UserResponse updateProfile(Long userId, UpdateProfileRequest request);
+    Page<UserResponse> getUsers(int page, int size);
     void lockUser(Long userId);
     void unlockUser(Long userId);
 }

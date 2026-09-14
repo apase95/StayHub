@@ -32,7 +32,7 @@ StayHub/
 │       │   ├── host/        dashboard.html
 │       │   └── admin/       bookings.html
 │       ├── static/{css,js,images,favicon.ico}
-│       ├── db/migration/    V1__create_users.sql, V2__create_properties.sql, V3__create_bookings.sql, ...
+│       ├── db/migration/    V1__create_users.sql, V2__normalize_user_emails.sql, V3__create_properties.sql, ...
 │       ├── application.yml
 │       ├── application-local.yml
 │       └── application-docker.yml
@@ -54,7 +54,7 @@ StayHub/
 
 - [x] **TSK-006** `[BE_Core]` Package `common/response`: tạo `ApiResponse<T>` chuẩn theo `rules.md` mục 4. *(Estimate: 0.5h · Priority: Urgent · Blocking)*
 
-- [x] **TSK-007** `[BE_Core]` Package `common/exception`: `GlobalExceptionHandler` (`@RestControllerAdvice`) + các exception dùng chung (`ResourceNotFoundException`, `BusinessException`, `InvalidStateTransitionException`...). *(Estimate: 1h · Priority: Urgent · Blocking)*
+- [x] **TSK-007** `[BE_Core]` Package `common/exception`: tách `ApiExceptionHandler` (`@RestControllerAdvice`) và `MvcExceptionHandler` (`@ControllerAdvice`) + các exception dùng chung. *(Estimate: 1h · Priority: Urgent · Blocking)*
 
 - [x] **TSK-008** `[BE_Core]` Package `common/validation` + `common/util`: custom validator (vd: check-in phải trước check-out), `DateUtil`, `PriceUtil`. *(Estimate: 1h · Priority: Medium)*
 
@@ -69,33 +69,42 @@ StayHub/
 
 # TRACK A — AUTH · USER · CORE CONFIG · ADMIN
 
-- [ ] **TSK-012** `[BE_Config]` `config/SecurityConfig.java`: session-based auth, `PasswordEncoder` (BCrypt), phân quyền theo path (`/host/**` → HOST, `/admin/**` → ADMIN). *(Estimate: 2.5h · Priority: Urgent · Blocking cho Dev B & Dev C)*
+- [x] **TSK-012** `[BE_Config]` `config/SecurityConfig.java`: session-based auth, `PasswordEncoder` (BCrypt), phân quyền theo path (`/host/**` → HOST, `/admin/**` → ADMIN). *(Estimate: 2.5h · Priority: Urgent · Blocking cho Dev B & Dev C)*
 
-- [ ] **TSK-013** `[BE_User]` `user/User.java` (entity extends BaseEntity), `user/dto/` (UserResponse, UpdateProfileRequest). *(Estimate: 1h · Priority: Urgent · Blocking)*
+- [x] **TSK-013** `[BE_User]` `user/User.java` (entity extends BaseEntity), `user/dto/` (UserResponse, UpdateProfileRequest). *(Estimate: 1h · Priority: Urgent · Blocking)*
 
-- [ ] **TSK-014** `[BE_User]` `UserRepository`, `UserService` (đăng ký, tìm theo email, đổi mật khẩu). *(Estimate: 1.5h · Priority: Urgent)*
+- [x] **TSK-014** `[BE_User]` `UserRepository`, `UserService` (đăng ký, tìm theo email, đổi mật khẩu). *(Estimate: 1.5h · Priority: Urgent)*
 
-- [ ] **TSK-015** `[BE_Auth]` `auth/UserPrincipal.java` (implements `UserDetails`) + `AuthService` (load user, xác thực). *(Estimate: 1.5h · Priority: Urgent · Blocking)*
+- [x] **TSK-015** `[BE_Auth]` `UserPrincipal` + `CustomUserDetailsService` tích hợp Spring Security; `AuthService` là boundary cho đăng ký tài khoản. *(Estimate: 1.5h · Priority: Urgent · Blocking)*
 
-- [ ] **TSK-016** `[BE_Auth]` `auth/AuthController.java`: `GET/POST /register`, `GET /login`, `POST /logout` + `auth/dto/RegisterRequest`. *(Estimate: 2h · Priority: Urgent)*
+- [x] **TSK-016** `[BE_Auth]` `AuthController`: `GET/POST /register`, `GET /login`; Spring Security xử lý `POST /login`, `POST /logout`; có `RegisterRequest`. *(Estimate: 2h · Priority: Urgent)*
 
-- [ ] **TSK-017** `[FE_Auth]` `templates/auth/login.html`, `register.html`. *(Estimate: 2h · Priority: High)*
+- [x] **TSK-017** `[FE_Auth]` `templates/auth/login.html`, `register.html`. *(Estimate: 2h · Priority: High)*
 
-- [ ] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). *(Estimate: 1h · Priority: Medium)*
+- [ ] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). Hiện Account/Profile vẫn là placeholder. *(Estimate: 1h · Priority: Medium)*
 
-- [ ] **TSK-019** `[DB]` Migration cho quyền hạn nếu cần (vd: thêm cột `status` cho user bị khoá) — tuỳ phát sinh. *(Estimate: 0.5h · Priority: Low)*
+- [x] **TSK-019** `[DB]` Xác nhận không cần migration quyền hạn riêng: role, status và constraints đã có trong `V1__create_users.sql`. *(Estimate: 0.5h · Priority: Low)*
 
-- [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan (tổng users, hosts, bookings, revenue). *(Estimate: 3h · Priority: Medium)*
+- [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan với dữ liệu thật (tổng users, active hosts, bookings, revenue). Hiện bookings và revenue vẫn là mock. *(Estimate: 3h · Priority: Medium)*
 
-- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: hiển thị Stats Big Number Cards (4 cards: Users, Hosts, Bookings, Revenue) + `templates/admin/bookings.html`: bảng quản lý booking toàn hệ thống (search, filter theo status) *(Estimate: 2.5h · Priority: Medium)*
+- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: Stats Cards + bảng booking toàn hệ thống với search, filter status và pagination. Hiện bảng booking vẫn là placeholder. *(Estimate: 2.5h · Priority: Medium)*
 
-- [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role) — mở rộng `AdminController`. *(Estimate: 2h · Priority: Low)*
+- [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role). Lock/unlock đã có; role-change chưa triển khai. *(Estimate: 2h · Priority: Low)*
+
+## FOUNDATION HARDENING
+
+- [x] **TSK-053** `[Testing]` Thêm JUnit/Mockito/Spring Security Test/Testcontainers và PostgreSQL 16 integration-test foundation.
+- [x] **TSK-054** `[Infra]` Chuẩn hóa config local/docker bằng environment variables, bỏ credential khỏi source và hoàn thiện full-stack Compose.
+- [x] **TSK-055** `[Security]` Bật CSRF cho session API; chuẩn hóa JSON 401/403 và CSRF response cho `/api/**`.
+- [x] **TSK-056** `[BE_User]` Chuẩn hóa email, xử lý duplicate race, thêm `V2__normalize_user_emails.sql` và DTO boundary cho Admin view.
+- [x] **TSK-057** `[BE_Config]` Bootstrap Admin opt-in bằng environment variables, không tự nâng quyền account tồn tại.
+- [x] **TSK-058** `[BE_Core]` Tách exception handling cho REST API và Thymeleaf MVC.
 
 ---
 
 # TRACK B — PROPERTY · SEARCH · HOST · STORAGE
 
-- [ ] **TSK-023** `[DB]` Migration `V2__create_properties.sql`: bảng `properties` (id, host_id, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, status, created_at, updated_at) + `V3__create_property_images.sql` + `V4__create_amenities.sql` + `V5__create_property_amenities.sql`. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-023** `[DB]` Migration `V3__create_properties.sql`: bảng `properties` (id, host_id, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, status, created_at, updated_at) + `V4__create_property_images.sql` + `V5__create_amenities.sql` + `V6__create_property_amenities.sql`. `V2` đã dành cho chuẩn hóa email user. *(Estimate: 2h · Priority: Urgent)*
 
 - [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/PropertyImage.java`, `property/PropertyStatus.java`, `property/PropertyType.java` + `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertyUpdateRequest, PropertySummary, PropertyImageRequest). *(Estimate: 2h · Priority: Urgent)*
 
@@ -123,7 +132,7 @@ StayHub/
 
 # TRACK C — BOOKING · PAYMENT · REVIEW · NOTIFICATION
 
-- [ ] **TSK-035** `[DB]` Migration `V3__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, nightly_price, cleaning_fee, service_fee, total_price, status, created_at, updated_at, cancelled_at) — theo thiết kế database (có snapshot price). *(Estimate: 1.5h · Priority: Urgent · phụ thuộc TSK-023 của Dev B)*
+- [ ] **TSK-035** `[DB]` Migration `V7__create_bookings.sql`: bảng `bookings` (id, property_id, guest_id, check_in_date, check_out_date, guests, nightly_price, cleaning_fee, service_fee, total_price, status, created_at, updated_at, cancelled_at) — theo thiết kế database (có snapshot price). *(Estimate: 1.5h · Priority: Urgent · phụ thuộc TSK-023 của Dev B)*
 
 - [ ] **TSK-036** `[BE_Booking]` `booking/Booking.java`, `booking/BookingStatus.java` (`PENDING/CONFIRMED/CANCELLED/REJECTED/COMPLETED`), `booking/dto/`. *(Estimate: 1.5h · Priority: Urgent)*
 
@@ -135,7 +144,7 @@ StayHub/
 
 - [ ] **TSK-040** `[FE_Booking]` `templates/booking/booking.html` + `payment.html`: Your booking, Guest details, Price summary, nút "Confirm & Pay" theo `flow.md`. *(Estimate: 3h · Priority: Urgent)*
 
-- [ ] **TSK-041** `[BE_Payment]` `payment/Payment.java`, `PaymentStatus.java`, `PaymentMethod.java` + Migration `V4__create_payments.sql`. *(Estimate: 1h · Priority: Urgent)*
+- [ ] **TSK-041** `[BE_Payment]` `payment/Payment.java`, `PaymentStatus.java`, `PaymentMethod.java` + Migration `V8__create_payments.sql`. *(Estimate: 1h · Priority: Urgent)*
 
 - [ ] **TSK-042** `[BE_Payment]` `payment/MockPaymentService.java` (implements `PaymentService`): set `payment_method = MOCK`, `status = SUCCESS` ngay lập tức. *(Estimate: 1.5h · Priority: Urgent)*
 
@@ -145,7 +154,7 @@ StayHub/
 
 - [ ] **TSK-045** `[FE_Booking]` `templates/booking/booking-detail.html` + trang "My Bookings" (tabs Upcoming/Pending/Completed/Cancelled) theo `flow.md`. *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-046** `[DB]` Migration `V8__create_reviews.sql`: bảng `reviews` (id, booking_id UNIQUE, property_id, guest_id, rating SMALLINT CHECK 1-5, comment, created_at, updated_at) — theo thiết kế database.. *(Estimate: 0.5h · Priority: Medium)*
+- [ ] **TSK-046** `[DB]` Migration `V9__create_reviews.sql`: bảng `reviews` (id, booking_id UNIQUE, property_id, guest_id, rating SMALLINT CHECK 1-5, comment, created_at, updated_at) — theo thiết kế database. *(Estimate: 0.5h · Priority: Medium)*
 
 - [ ] **TSK-047** `[BE_Review]` `review/Review.java`, `ReviewController.java`, `ReviewService.java`, `ReviewRepository.java`: cho phép review khi booking `COMPLETED`, cập nhật `rating_avg` của property sau khi review mới. *(Estimate: 2.5h · Priority: Medium)*
 
