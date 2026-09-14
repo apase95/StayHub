@@ -2,6 +2,7 @@ package com.stayhub.auth;
 
 import com.stayhub.user.User;
 import com.stayhub.user.UserRepository;
+import com.stayhub.user.EmailNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,8 +17,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        String normalizedEmail = EmailNormalizer.normalize(email);
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + normalizedEmail));
                 
         return UserPrincipal.create(user);
     }

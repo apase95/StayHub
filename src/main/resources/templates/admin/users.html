@@ -2,6 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Manage Users - StayHub Admin</title>
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -44,7 +46,7 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                     <!-- Loop through users -->
-                    <tr th:each="user : ${users}" class="hover:bg-bg-light transition">
+                    <tr th:each="user : ${userPage.content}" class="hover:bg-bg-light transition">
                         <td class="px-6 py-4 text-sm text-text-gray" th:text="${user.id}">1</td>
                         <td class="px-6 py-4 text-sm font-semibold" th:text="${user.fullName}">John Doe</td>
                         <td class="px-6 py-4 text-sm text-text-gray" th:text="${user.email}">john@example.com</td>
@@ -78,30 +80,58 @@
                             </button>
                         </td>
                     </tr>
+                    <tr th:if="${userPage.empty}">
+                        <td colspan="6" class="px-6 py-10 text-center text-text-gray">No users found.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+
+        <nav th:if="${userPage.totalPages > 1}" class="mt-6 flex items-center justify-between" aria-label="User pagination">
+            <a th:href="@{/admin/users(page=${userPage.number - 1},size=${userPage.size})}"
+               th:classappend="${userPage.first} ? 'pointer-events-none opacity-50' : ''"
+               class="px-4 py-2 border border-border rounded-lg font-semibold hover:bg-bg-white">Previous</a>
+            <span class="text-sm text-text-gray"
+                  th:text="|Page ${userPage.number + 1} of ${userPage.totalPages} (${userPage.totalElements} users)|"></span>
+            <a th:href="@{/admin/users(page=${userPage.number + 1},size=${userPage.size})}"
+               th:classappend="${userPage.last} ? 'pointer-events-none opacity-50' : ''"
+               class="px-4 py-2 border border-border rounded-lg font-semibold hover:bg-bg-white">Next</a>
+        </nav>
     </main>
 
     <!-- Alpine.js logic for API calls -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('userManagement', () => ({
-                toggleStatus(userId, action) {
+                async toggleStatus(userId, action) {
                     if(!confirm(`Are you sure you want to ${action} this user?`)) return;
-                    
-                    fetch(`/api/v1/admin/users/${userId}/${action}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            window.location.reload();
-                        } else {
-                            alert(data.message);
+
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+                    try {
+                        const response = await fetch(`/api/v1/admin/users/${userId}/${action}`, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                [csrfHeader]: csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const contentType = response.headers.get('content-type') || '';
+                        if (!contentType.includes('application/json')) {
+                            throw new Error('The server returned an unexpected response.');
                         }
-                    })
-                    .catch(error => console.error('Error:', error));
+
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            window.location.reload();
+                            return;
+                        }
+                        alert(data.message || 'The request could not be completed.');
+                    } catch (error) {
+                        alert(error.message || 'The request could not be completed.');
+                    }
                 }
             }))
         })

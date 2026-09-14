@@ -925,28 +925,19 @@ AND no conflicting active booking exists
 
 # 15. Database Migration Plan
 
-Recommended Flyway migration sequence:
+Canonical Flyway migration sequence:
 
 ```text
 V1__create_users.sql
-V2__create_properties.sql
-V3__create_bookings.sql
-V4__create_payments.sql
-V5__create_reviews.sql
-```
-
-A more granular production-friendly sequence:
-
-```text
-V1__create_users.sql
-V2__create_properties.sql
-V3__create_property_images.sql
-V4__create_amenities.sql
-V5__create_property_amenities.sql
-V6__create_bookings.sql
-V7__create_payments.sql
-V8__create_reviews.sql
-V9__add_database_indexes.sql
+V2__normalize_user_emails.sql
+V3__create_properties.sql
+V4__create_property_images.sql
+V5__create_amenities.sql
+V6__create_property_amenities.sql
+V7__create_bookings.sql
+V8__create_payments.sql
+V9__create_reviews.sql
+V10__add_database_indexes.sql
 ```
 
 ## Recommended rule
@@ -957,7 +948,7 @@ Instead:
 
 ```text
 Wrong:
-V2__create_properties.sql
+V3__create_properties.sql
   → modify after other developers have run it
 ```
 
@@ -965,7 +956,7 @@ Use:
 
 ```text
 Correct:
-V10__add_property_status.sql
+V11__add_property_status.sql
 ```
 
 ---

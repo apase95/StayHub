@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
@@ -23,8 +24,10 @@ public class AdminController {
     }
     
     @GetMapping("/users")
-    public String viewUser(Model model) {
-        model.addAttribute("users", userService.getAllUsers());
+    public String viewUser(@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "20") int size,
+                           Model model) {
+        model.addAttribute("userPage", userService.getUsers(page, size));
         return "admin/users";
     }
     

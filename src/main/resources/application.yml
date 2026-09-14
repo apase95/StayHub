@@ -2,26 +2,29 @@ spring:
   application:
     name: stayhub
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/stayhub_db
-    username: stayhub_user
-    password: 123321999
-    driver-class-name: org.postgresql.Driver
-  
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:false}
 
   flyway:
     enabled: true
-    baseline-on-migrate: true
+    baseline-on-migrate: false
 
   thymeleaf:
-    cache: false
+    cache: ${THYMELEAF_CACHE:true}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+app:
+  bootstrap:
+    admin:
+      enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
+      email: ${ADMIN_EMAIL:}
+      password: ${ADMIN_PASSWORD:}
+      full-name: ${ADMIN_FULL_NAME:StayHub Administrator}

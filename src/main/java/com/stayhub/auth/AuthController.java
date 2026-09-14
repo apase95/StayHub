@@ -1,8 +1,7 @@
 package com.stayhub.auth;
 
 import com.stayhub.auth.dto.RegisterRequest;
-import com.stayhub.common.exception.BusinessException;
-import com.stayhub.user.UserService;
+import com.stayhub.common.exception.DuplicateEmailException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping("/login")
     public String showLoginForm() {
@@ -38,10 +37,11 @@ public class AuthController {
         }
 
         try {
-            userService.register(request);
+            authService.register(request);
             return "redirect:/login?registered=true";
-        } catch (BusinessException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+        } catch (DuplicateEmailException exception) {
+            bindingResult.rejectValue("email", exception.getErrorCode(), exception.getMessage());
+            request.setPassword(null);
             return "auth/register";
         }
     }

@@ -79,6 +79,11 @@ git push -u origin feature/TSK-010
   - `409 Conflict`: Trạng thái nghiệp vụ xung đột (VD: property đã hết phòng trống ngày khách chọn).
   - `500 Internal Server Error`: Lỗi server (DB sập, exception chưa handle...).
 
+### Session API và CSRF
+  - StayHub dùng session cookie, vì vậy mọi API thay đổi dữ liệu (`POST`, `PUT`, `PATCH`, `DELETE`) phải giữ CSRF protection.
+  - JavaScript lấy token/header name do Thymeleaf cung cấp và gửi token trong request header; không disable CSRF cho toàn bộ `/api/**`.
+  - Security failure của API phải trả JSON `ApiResponse`; security failure của route MVC giữ redirect/HTML behavior.
+
 ## 5. CODE STYLE & CONVENTIONS
 
 ### Đối với Backend (Java / Spring Boot)
@@ -97,6 +102,7 @@ git push -u origin feature/TSK-010
   - **Bắt buộc** format code theo chuẩn mặc định của IDE (hoặc Spotless/Checkstyle nếu project cấu hình) trước khi commit.
   - **Xử lý lỗi:** Dùng `@ControllerAdvice`/`@RestControllerAdvice` để bắt exception tập trung, không `try-catch` rồi nuốt lỗi (`catch (Exception e) {}` rỗng là **cấm**).
   - **DTO tách biệt Entity:** Không trả trực tiếp JPA Entity ra View/API, luôn map qua DTO để tránh lộ field nhạy cảm (VD: password hash) và tránh lỗi lazy-loading.
+  - **Email identity:** Email user phải được trim và lowercase bằng `Locale.ROOT` trước khi lưu hoặc lookup; database migration bảo vệ canonical format.
 
 ### Đối với Frontend (Thymeleaf + Tailwind CSS + Alpine.js/htmx)
   - **Tên file template:** `kebab-case`, đặt tên theo trang/chức năng (vd: `property-detail.html`, `booking-payment.html`, `host-dashboard.html`).

@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+
+  thymeleaf:
+    cache: false
+
+app:
+  bootstrap:
+    admin:
+      enabled: false

@@ -188,7 +188,9 @@ POST /api/v1/host/bookings/5/accept
 ## 6. Authentication và Authorization
 
 - Sử dụng **session-based authentication** (Spring Security).
-- Các endpoint `/api/v1/**` yêu cầu xác thực trừ những trường hợp đặc biệt (ví dụ: check availability có thể mở nếu không yêu cầu login?).
+- Các endpoint `/api/v1/**` yêu cầu xác thực, trừ `GET` public được khai báo cụ thể như đọc/search property. Không permit toàn bộ HTTP methods trên một public path pattern.
+- Request API thay đổi dữ liệu dùng session cookie phải gửi CSRF token. Thymeleaf cung cấp `${_csrf.token}` và `${_csrf.headerName}` để JavaScript gửi đúng header.
+- Lỗi security của `/api/**` luôn trả `ApiResponse` JSON: `ERR_UNAUTHORIZED` (401), `ERR_FORBIDDEN` (403), hoặc `ERR_CSRF` (403). Route MVC vẫn redirect anonymous user đến `/login` và trả HTML khi có lỗi.
 - Phân quyền:
   - `/host/**` và `/api/v1/host/**` chỉ dành cho `HOST` hoặc `ADMIN`.
   - `/admin/**` và `/api/v1/admin/**` chỉ dành cho `ADMIN`.
@@ -197,7 +199,7 @@ POST /api/v1/host/bookings/5/accept
 
 ## 7. Error handling
 
-Tất cả lỗi (trừ lỗi validation cơ bản) được xử lý tập trung trong `GlobalExceptionHandler` (thuộc package `common/exception`).
+Lỗi REST controller được xử lý trong `ApiExceptionHandler` và trả `ApiResponse`. Lỗi MVC controller được xử lý trong `MvcExceptionHandler` và trả Thymeleaf error page. Lỗi phát sinh trong Spring Security filter chain do `ApiAuthenticationEntryPoint`/`ApiAccessDeniedHandler` xử lý.
 
 Các custom exception:
 - `ResourceNotFoundException`: 404
