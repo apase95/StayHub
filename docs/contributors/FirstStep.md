@@ -89,6 +89,12 @@ Compose dùng volume `pgdata_v16`. Nếu máy đã có dữ liệu từ PostgreS
 
 Để tạo Admin đầu tiên, điền `ADMIN_EMAIL`, `ADMIN_PASSWORD`, đặt `ADMIN_BOOTSTRAP_ENABLED=true`, khởi động app một lần, sau đó tắt flag và xoá/rotate bootstrap password. Initializer không nâng quyền một tài khoản Guest/Host đã tồn tại.
 
+Upload ảnh mặc định dùng thư mục local `uploads/` và public URL `/uploads/**`. Có thể chỉnh `UPLOAD_LOCAL_DIRECTORY`, `UPLOAD_MAX_FILE_SIZE`, `UPLOAD_MAX_REQUEST_SIZE`, `UPLOAD_MAX_IMAGES_PER_PROPERTY`. Docker Compose giữ file trong volume `property_uploads`.
+
+Để dùng Cloudinary, đặt `UPLOAD_USE_CLOUDINARY=true` cùng `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`. Không commit các credential này. Upload hiện chỉ nhận JPEG/PNG đã decode được.
+
+Host UI chỉ hiển thị cho account có role `HOST` hoặc `ADMIN`. Luồng nâng `GUEST` thành `HOST` thuộc task role/onboarding riêng và chưa được tự động hóa trong Property domain.
+
 ---
 
 ## BƯỚC 5: CODE, ADD VÀ COMMIT

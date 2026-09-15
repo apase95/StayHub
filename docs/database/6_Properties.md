@@ -9,12 +9,14 @@
 | `address` | VARCHAR(500) | NOT NULL | Address |
 | `city` | VARCHAR(100) | NOT NULL | Searchable city |
 | `price_per_night` | NUMERIC(12,2) | NOT NULL | Base nightly price |
+| `cleaning_fee` | NUMERIC(12,2) | NOT NULL, default 0 | Host-configured cleaning fee |
 | `max_guests` | INT | NOT NULL | Maximum guests |
 | `bedrooms` | INT | NOT NULL | Bedroom count |
 | `beds` | INT | NOT NULL | Bed count |
 | `bathrooms` | INT | NOT NULL | Bathroom count |
 | `property_type` | VARCHAR(30) | NOT NULL | Property category |
 | `status` | VARCHAR(20) | NOT NULL | Listing state |
+| `rating_avg` | NUMERIC(3,2) | NOT NULL, default 0 | Cached review average used by search/detail |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update timestamp |
 
@@ -27,6 +29,7 @@ property_type:
 - VILLA
 - HOTEL_ROOM
 - HOMESTAY
+- RESORT
 
 status:
 - ACTIVE
@@ -64,7 +67,7 @@ properties
 
 ### Important rule
 
-At most one image should be marked as the cover image for each property.
+At most one image should be marked as the cover image for each property. V4 enforces this with a PostgreSQL partial unique index. `display_order` is unique inside each property.
 
 Possible application-level invariant:
 
@@ -72,6 +75,8 @@ Possible application-level invariant:
 For each property:
 COUNT(property_images WHERE is_cover = true) <= 1
 ```
+
+An `ACTIVE` property must have a cover image. If the final image is removed, the service returns the property to `DRAFT`. Host delete actions archive a property as `INACTIVE`; they do not physically delete rows needed by future Booking/Review history.
 
 
 # Property_Amenities

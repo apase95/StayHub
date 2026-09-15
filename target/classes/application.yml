@@ -18,6 +18,11 @@ spring:
   thymeleaf:
     cache: ${THYMELEAF_CACHE:true}
 
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:50MB}
+
 server:
   port: ${SERVER_PORT:8080}
 
@@ -28,3 +33,13 @@ app:
       email: ${ADMIN_EMAIL:}
       password: ${ADMIN_PASSWORD:}
       full-name: ${ADMIN_FULL_NAME:StayHub Administrator}
+  upload:
+    use-cloudinary: ${UPLOAD_USE_CLOUDINARY:false}
+    local-directory: ${UPLOAD_LOCAL_DIRECTORY:uploads}
+    local-base-url: ${UPLOAD_LOCAL_BASE_URL:/uploads}
+    max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+    max-images-per-property: ${UPLOAD_MAX_IMAGES_PER_PROPERTY:10}
+    cloudinary:
+      cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+      api-key: ${CLOUDINARY_API_KEY:}
+      api-secret: ${CLOUDINARY_API_SECRET:}

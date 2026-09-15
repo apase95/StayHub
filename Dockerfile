@@ -7,7 +7,8 @@ RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S stayhub && adduser -S stayhub -G stayhub
+RUN addgroup -S stayhub && adduser -S stayhub -G stayhub && \
+    mkdir -p /app/uploads && chown -R stayhub:stayhub /app/uploads
 COPY --from=builder /app/target/*.jar app.jar
 RUN chown stayhub:stayhub app.jar
 USER stayhub

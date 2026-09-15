@@ -76,6 +76,13 @@ class SecurityConfigTest {
     }
 
     @Test
+    void bookingPageIsNotCoveredByPublicPropertyMatcher() throws Exception {
+        mockMvc.perform(get("/properties/1/book"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
     void adminWithCsrfCanLockUser() throws Exception {
         mockMvc.perform(post("/api/v1/admin/users/1/lock")
                         .with(user("admin").roles("ADMIN"))

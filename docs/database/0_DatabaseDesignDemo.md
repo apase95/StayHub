@@ -209,12 +209,14 @@ users
 | `address` | VARCHAR(500) | NOT NULL | Address |
 | `city` | VARCHAR(100) | NOT NULL | Searchable city |
 | `price_per_night` | NUMERIC(12,2) | NOT NULL | Base nightly price |
+| `cleaning_fee` | NUMERIC(12,2) | NOT NULL, default 0 | Host-configured cleaning fee |
 | `max_guests` | INT | NOT NULL | Maximum guests |
 | `bedrooms` | INT | NOT NULL | Bedroom count |
 | `beds` | INT | NOT NULL | Bed count |
 | `bathrooms` | INT | NOT NULL | Bathroom count |
 | `property_type` | VARCHAR(30) | NOT NULL | Property category |
 | `status` | VARCHAR(20) | NOT NULL | Listing state |
+| `rating_avg` | NUMERIC(3,2) | NOT NULL, default 0 | Cached review average |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update timestamp |
 
@@ -227,6 +229,7 @@ property_type:
 - VILLA
 - HOTEL_ROOM
 - HOMESTAY
+- RESORT
 
 status:
 - ACTIVE
@@ -268,12 +271,14 @@ properties
 
 At most one image should be marked as the cover image for each property.
 
-Possible application-level invariant:
+V4 enforces the invariant with a partial unique index; the service additionally requires a cover before a listing becomes `ACTIVE`:
 
 ```text
 For each property:
 COUNT(property_images WHERE is_cover = true) <= 1
 ```
+
+Host delete operations archive listings by moving them to `INACTIVE`. They do not physically delete property rows that will be referenced by Booking and Review history.
 
 ---
 

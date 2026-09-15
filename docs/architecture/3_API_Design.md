@@ -82,6 +82,14 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 | `GET` | `/host/properties/{id}/edit` | Form chỉnh sửa property | Path: `id` |
 | `PUT` | `/host/properties/{id}` | Cập nhật property | Path: `id`, Body |
 | `DELETE` | `/host/properties/{id}` | Xóa property | Path: `id` |
+| `GET` | `/api/v1/host/properties` | Danh sách property của host hiện tại | Session HOST/ADMIN |
+| `POST` | `/api/v1/host/properties` | Tạo property ở trạng thái DRAFT | JSON + CSRF |
+| `GET/PUT/DELETE` | `/api/v1/host/properties/{id}` | Đọc/cập nhật/archive property thuộc host | Ownership + CSRF khi mutate |
+| `POST` | `/api/v1/host/properties/{id}/images` | Upload JPEG/PNG | Multipart + CSRF |
+| `DELETE` | `/api/v1/host/properties/{id}/images/{imageId}` | Xóa ảnh | Ownership + CSRF |
+| `PUT` | `/api/v1/host/properties/{id}/images/{imageId}/cover` | Chọn ảnh cover | Ownership + CSRF |
+| `PUT` | `/api/v1/host/properties/{id}/images/order` | Sắp xếp toàn bộ gallery | JSON + CSRF |
+| `GET` | `/api/v1/amenities` | Danh mục amenities public | - |
 | `POST` | `/api/v1/host/bookings/{id}/accept` | Host chấp nhận booking | Path: `id` |
 | `POST` | `/api/v1/host/bookings/{id}/reject` | Host từ chối booking | Path: `id` |
 
@@ -196,6 +204,9 @@ POST /api/v1/host/bookings/5/accept
   - `/admin/**` và `/api/v1/admin/**` chỉ dành cho `ADMIN`.
   - `/my-bookings`, `/bookings/**` yêu cầu đăng nhập (bất kỳ role nào, nhưng sẽ kiểm tra ownership).
 - Sử dụng `@PreAuthorize` hoặc cấu hình trong `SecurityConfig` để enforce.
+- Public property detail chỉ trả listing `ACTIVE`. Mọi mutation Host kiểm tra ownership bằng `principal.id`; ID không thuộc Host trả 404 để tránh enumeration.
+- Listing mới luôn là `DRAFT`; chỉ chuyển `ACTIVE` khi có cover. `DELETE` property là archive sang `INACTIVE` để giữ lịch sử cho Booking/Review.
+- Upload chỉ nhận JPEG/PNG hợp lệ, giới hạn dung lượng/số lượng/pixel; file mới được xóa khi transaction rollback và file cũ chỉ bị xóa sau khi database commit.
 
 ## 7. Error handling
 

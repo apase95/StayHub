@@ -1,5 +1,5 @@
-com/stayhub/StayhubApplicationTest.class
 com/stayhub/support/PostgreSqlIntegrationTest.class
 com/stayhub/config/AdminBootstrapRunnerTest.class
 com/stayhub/config/SecurityConfigTest.class
 com/stayhub/auth/AuthServiceImplTest.class
+com/stayhub/StayhubApplicationTest.class
