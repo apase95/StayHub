@@ -31,7 +31,7 @@
 
         <!-- Right Menu -->
         <div class="flex items-center gap-4 text-sm font-semibold text-text-900 relative">
-            <a th:href="@{/host/dashboard}" class="hidden md:block hover:bg-bg-light px-4 py-2 rounded-full transition">Host your home</a>
+            <a sec:authorize="hasAnyRole('HOST','ADMIN')" th:href="@{/host/dashboard}" class="hidden md:block hover:bg-bg-light px-4 py-2 rounded-full transition">Host workspace</a>
             
             <!-- User Menu Pill with Alpine.js -->
             <div x-data="{ open: false }" class="relative">
@@ -62,7 +62,6 @@
                         <a th:href="@{/login}" class="block px-4 py-3 hover:bg-bg-light font-bold text-text-900">Sign in</a>
                         <a th:href="@{/register}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Sign up</a>
                         <hr class="my-1 border-border">
-                        <a th:href="@{/host/dashboard}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Host your home</a>
                         <a href="#" class="block px-4 py-3 hover:bg-bg-light text-text-900">Help</a>
                     </div>
 
@@ -81,7 +80,7 @@
                         <hr class="my-1 border-border">
                         
                         <!-- Host Features (Visible to everyone for MVP context, or restrict to HOST role) -->
-                        <a th:href="@{/host/dashboard}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Manage listings</a>
+                        <a sec:authorize="hasAnyRole('HOST','ADMIN')" th:href="@{/host/dashboard}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Manage listings</a>
                         <a href="#" class="block px-4 py-3 hover:bg-bg-light text-text-900">Account</a>
                         <hr class="my-1 border-border">
                         

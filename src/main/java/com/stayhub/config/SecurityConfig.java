@@ -33,9 +33,12 @@ public class SecurityConfig {
 
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                 .requestMatchers("/login", "/register").permitAll()
-                .requestMatchers(HttpMethod.GET, "/properties/**", "/api/v1/properties/**").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/properties", "/properties/*",
+                        "/api/v1/properties", "/api/v1/properties/*",
+                        "/api/v1/amenities").permitAll()
                 .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")                
                 .requestMatchers("/host/**", "/api/v1/host/**").hasAnyRole("HOST", "ADMIN")
                 .anyRequest().authenticated()

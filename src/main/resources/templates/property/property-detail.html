@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${property.title} - StayHub|">Property - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-white text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="mx-auto max-w-7xl px-5 py-8 lg:px-10">
+    <header class="mb-6">
+        <p class="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-primary-500" th:text="${#strings.replace(property.propertyType.name(), '_', ' ')}">VILLA</p>
+        <h1 class="text-3xl font-bold tracking-tight md:text-4xl" th:text="${property.title}">Property title</h1>
+        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <span class="font-bold"><span class="text-rating-500">&#9733;</span> <span th:text="${property.ratingAvg}">0.0</span></span>
+            <span class="text-text-gray" th:text="|${property.city} · Hosted by ${property.hostName}|">City</span>
+        </div>
+    </header>
+
+    <section th:if="${#lists.isEmpty(property.images)}" class="flex aspect-[16/7] items-center justify-center rounded-2xl bg-slate-100 text-text-gray">
+        Photos are coming soon
+    </section>
+    <section th:unless="${#lists.isEmpty(property.images)}" class="grid max-h-[560px] grid-cols-1 gap-2 overflow-hidden rounded-2xl md:grid-cols-2">
+        <img th:src="${property.images[0].imageUrl}" th:alt="${property.title}" class="h-full min-h-72 w-full object-cover md:min-h-[480px]">
+        <div class="hidden grid-cols-2 gap-2 md:grid">
+            <img th:each="image, stat : ${property.images}" th:if="${stat.index > 0 and stat.index < 5}"
+                 th:src="${image.imageUrl}" th:alt="|${property.title} photo ${stat.count}|" class="h-full min-h-0 w-full object-cover">
+            <div th:if="${property.images.size() == 1}" class="col-span-2 flex items-center justify-center bg-slate-100 text-text-gray">More photos coming soon</div>
+        </div>
+    </section>
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div>
+            <section class="border-b border-border pb-8">
+                <h2 class="text-2xl font-bold" th:text="|${property.propertyType.name().replace('_', ' ')} in ${property.city}|">Stay details</h2>
+                <p class="mt-3 text-text-gray" th:text="|${property.maxGuests} guests · ${property.bedrooms} bedrooms · ${property.beds} beds · ${property.bathrooms} bathrooms|">Capacity</p>
+            </section>
+
+            <section class="border-b border-border py-8">
+                <h2 class="text-xl font-bold">About this place</h2>
+                <p class="mt-4 whitespace-pre-line leading-7 text-text-gray" th:text="${property.description}">Description</p>
+                <p class="mt-5 text-sm font-semibold" th:text="${property.address}">Address</p>
+            </section>
+
+            <section class="py-8">
+                <h2 class="text-xl font-bold">What this place offers</h2>
+                <p th:if="${#lists.isEmpty(property.amenities)}" class="mt-4 text-text-gray">No amenities listed yet.</p>
+                <div th:unless="${#lists.isEmpty(property.amenities)}" class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div th:each="amenity : ${property.amenities}" class="flex items-center gap-3 rounded-xl border border-border px-4 py-4">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-light text-primary-500">+</span>
+                        <span class="font-semibold" th:text="${amenity.name}">Amenity</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="lg:sticky lg:top-28 lg:self-start">
+            <div class="rounded-2xl border border-border bg-white p-6 shadow-xl shadow-slate-200/60">
+                <p><strong class="text-2xl" th:text="${#numbers.formatDecimal(property.pricePerNight, 0, 'COMMA', 0, 'POINT')}">0</strong> <span class="text-text-gray">/ night</span></p>
+                <div class="mt-5 rounded-xl border border-border p-4">
+                    <div class="flex justify-between text-sm"><span class="text-text-gray">Cleaning fee</span><strong th:text="${#numbers.formatDecimal(property.cleaningFee, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                </div>
+                <div class="mt-5 rounded-xl bg-slate-100 px-5 py-3 text-center font-bold text-text-gray">Booking opens soon</div>
+                <p class="mt-3 text-center text-xs text-text-gray">Availability will be enabled with the Booking domain.</p>
+            </div>
+        </aside>
+    </div>
+</main>
+</body>
+</html>

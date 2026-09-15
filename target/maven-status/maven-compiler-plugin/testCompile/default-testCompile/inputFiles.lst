@@ -2,4 +2,7 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/auth/AuthServiceImplTest.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/config/AdminBootstrapRunnerTest.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/config/SecurityConfigTest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/property/PropertyServiceIntegrationTest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/property/PropertyWebIntegrationTest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/storage/LocalStorageServiceTest.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/test/java/com/stayhub/support/PostgreSqlIntegrationTest.java

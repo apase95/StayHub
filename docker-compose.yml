@@ -31,11 +31,22 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_FULL_NAME: ${ADMIN_FULL_NAME:-StayHub Administrator}
+      UPLOAD_USE_CLOUDINARY: ${UPLOAD_USE_CLOUDINARY:-false}
+      UPLOAD_LOCAL_DIRECTORY: /app/uploads
+      UPLOAD_MAX_FILE_SIZE: ${UPLOAD_MAX_FILE_SIZE:-10MB}
+      UPLOAD_MAX_REQUEST_SIZE: ${UPLOAD_MAX_REQUEST_SIZE:-50MB}
+      UPLOAD_MAX_IMAGES_PER_PROPERTY: ${UPLOAD_MAX_IMAGES_PER_PROPERTY:-10}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
     ports:
       - "${APP_PORT:-8080}:8080"
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - property_uploads:/app/uploads
 
 volumes:
   pgdata_v16:
+  property_uploads:

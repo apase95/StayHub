@@ -104,17 +104,17 @@ StayHub/
 
 # TRACK B — PROPERTY · SEARCH · HOST · STORAGE
 
-- [ ] **TSK-023** `[DB]` Migration `V3__create_properties.sql`: bảng `properties` (id, host_id, title, description, address, city, price_per_night, max_guests, bedrooms, beds, bathrooms, property_type, status, created_at, updated_at) + `V4__create_property_images.sql` + `V5__create_amenities.sql` + `V6__create_property_amenities.sql`. `V2` đã dành cho chuẩn hóa email user. *(Estimate: 2h · Priority: Urgent)*
+- [x] **TSK-023** `[DB]` Migration `V3__create_properties.sql`: bảng `properties` (bao gồm `cleaning_fee`, `rating_avg`) + `V4__create_property_images.sql` + `V5__create_amenities.sql` + `V6__create_property_amenities.sql`. `V2` đã dành cho chuẩn hóa email user. *(Estimate: 2h · Priority: Urgent)*
 
-- [ ] **TSK-024** `[BE_Property]` `property/Property.java`, `property/PropertyImage.java`, `property/PropertyStatus.java`, `property/PropertyType.java` + `property/dto/` (PropertyResponse, PropertyCreateRequest, PropertyUpdateRequest, PropertySummary, PropertyImageRequest). *(Estimate: 2h · Priority: Urgent)*
+- [x] **TSK-024** `[BE_Property]` `Property`, `PropertyImage`, `Amenity`, enums và Property/Image/Amenity DTOs. *(Estimate: 2h · Priority: Urgent)*
 
-- [ ] **TSK-025** `[BE_Property]` `PropertyRepository`, `PropertyService`, `PropertyMapper` (entity ↔ dto, tránh trả Entity trực tiếp theo `rules.md`). *(Estimate: 2h · Priority: Urgent)*
+- [x] **TSK-025** `[BE_Property]` `PropertyRepository`, `PropertyService`, `PropertyMapper` (entity ↔ dto, tránh trả Entity trực tiếp theo `rules.md`). *(Estimate: 2h · Priority: Urgent)*
 
-- [ ] **TSK-026** `[BE_Storage]` `storage/StorageService.java` (interface) + `LocalStorageService.java` (lưu đĩa cục bộ trước, dùng khi dev). *(Estimate: 2h · Priority: High)*
+- [x] **TSK-026** `[BE_Storage]` `storage/StorageService.java` (interface) + `LocalStorageService.java` (lưu đĩa cục bộ trước, dùng khi dev). *(Estimate: 2h · Priority: High)*
 
-- [ ] **TSK-027** `[BE_Storage]` `storage/CloudinaryStorageService.java` + `config/StorageConfig.java` (bean chọn implementation theo `app.upload.use-cloudinary`). *(Estimate: 2h · Priority: Medium)*
+- [x] **TSK-027** `[BE_Storage]` `storage/CloudinaryStorageService.java` + `config/StorageConfig.java` (bean chọn implementation theo `app.upload.use-cloudinary`). *(Estimate: 2h · Priority: Medium)*
 
-- [ ] **TSK-028** `[BE_Property]` `PropertyController.java`: `GET /` (home), `GET /properties/{id}` (property detail). *(Estimate: 1.5h · Priority: Urgent)*
+- [x] **TSK-028** `[BE_Property]` `HomeController` phục vụ `GET /`; `PropertyController` và REST controller phục vụ public detail, chỉ trả listing `ACTIVE`. *(Estimate: 1.5h · Priority: Urgent)*
 
 - [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests theo UI Design System), popular destinations, featured properties, popular categories — responsive (search box chồng dọc trên mobile). *(Estimate: 2.5h · Priority: Urgent)*
 
@@ -124,9 +124,9 @@ StayHub/
 
 - [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh (main + thumbnail grid, responsive → carousel trên mobile), description, amenities, reviews (hiển thị rating + comment), availability calendar, price box (sticky trên desktop, bottom bar trên mobile) — theo UI Design System. *(Estimate: 3h · Priority: Urgent)*
 
-- [ ] **TSK-033** `[BE_Host]` `host/HostController.java`, `HostService.java`, `host/dto/`: CRUD property của host (`GET /host/properties`, `GET/POST /host/properties/new`, `GET/PUT /host/properties/{id}`, `DELETE /host/properties/{id}`), upload ảnh qua `StorageService`.  *(Estimate: 3h · Priority: High)*
+- [x] **TSK-033** `[BE_Host]` Host MVC + REST CRUD có ownership, archive listing, quản lý ảnh (upload/delete/cover/order) qua `StorageService`; mutation ảnh được serialize và có rollback/after-commit cleanup. *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: danh sách property của host (với nút Add Property, Edit, Delete) + danh sách booking request (dữ liệu từ Track C) — responsive với Stats Cards. *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
+- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: phần danh sách property/Add/Edit/Archive đã hoàn thành; danh sách booking request và Stats Cards chờ dữ liệu từ Track C. *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
 
 ---
 
