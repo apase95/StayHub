@@ -55,4 +55,10 @@ public class BookingRestController {
                                                       @AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.success(bookingService.rejectBooking(principal.getId(), id), "Booking rejected successfully.");
     }
+
+    @PostMapping("/host/{id}/complete")
+    public ApiResponse<BookingResponse> completeBooking(@PathVariable Long id,
+                                                        @AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.success(bookingService.completeBooking(principal.getId(), id), "Booking completed successfully.");
+    }
 }

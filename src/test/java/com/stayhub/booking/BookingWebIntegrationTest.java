@@ -16,6 +16,7 @@ import com.stayhub.property.Property;
 import com.stayhub.property.PropertyRepository;
 import com.stayhub.property.PropertyStatus;
 import com.stayhub.property.PropertyType;
+import com.stayhub.review.ReviewRepository;
 import com.stayhub.support.PostgreSqlIntegrationTest;
 import com.stayhub.user.User;
 import com.stayhub.user.UserRepository;
@@ -45,6 +46,9 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
     private PaymentRepository paymentRepository;
 
     @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
     private BookingService bookingService;
 
     @Autowired
@@ -61,6 +65,7 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        reviewRepository.deleteAll();
         paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
@@ -78,6 +83,7 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
 
     @AfterEach
     void cleanUp() {
+        reviewRepository.deleteAll();
         paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
@@ -142,9 +148,16 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                         .param("checkOutDate", LocalDate.now().plusDays(14).toString())
                         .param("guests", "2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/bookings/*/payment"));
+                .andExpect(redirectedUrlPattern("/bookings/*"));
 
         Booking booking = bookingRepository.findAll().getFirst();
+        mockMvc.perform(get("/bookings")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("booking/my-bookings"))
+                .andExpect(model().attribute("tab", "pending"))
+                .andExpect(model().attributeExists("bookings"));
+
         mockMvc.perform(get("/bookings/{id}/payment", booking.getId())
                         .with(authentication(authentication)))
                 .andExpect(status().isOk())
@@ -199,6 +212,27 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/bookings/*"));
+    }
+
+    @Test
+    void guestCanReviewCompletedBookingAndPropertyDetailShowsReviews() throws Exception {
+        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
+                LocalDate.now().plusDays(40), LocalDate.now().plusDays(42), 2));
+        bookingService.acceptBooking(host.getId(), booking.getId());
+        bookingService.completeBooking(host.getId(), booking.getId());
+
+        mockMvc.perform(post("/bookings/{id}/reviews", booking.getId())
+                        .with(authentication(authentication))
+                        .with(csrf())
+                        .param("rating", "5")
+                        .param("comment", "A very reliable stay."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/bookings/*"));
+
+        mockMvc.perform(get("/properties/{id}", property.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("property/property-detail"))
+                .andExpect(model().attributeExists("reviews"));
     }
 
     private void createExistingBooking(LocalDate checkInDate, LocalDate checkOutDate) {

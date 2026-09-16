@@ -8,6 +8,7 @@ import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
 import com.stayhub.common.exception.InvalidStateTransitionException;
 import com.stayhub.common.exception.ResourceNotFoundException;
+import com.stayhub.notification.NotificationService;
 import com.stayhub.payment.PaymentService;
 import com.stayhub.property.Property;
 import com.stayhub.property.PropertyRepository;
@@ -36,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingPriceService bookingPriceService;
     private final BookingMapper bookingMapper;
     private final PaymentService paymentService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -126,7 +128,9 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findHostBookingForUpdate(hostId, bookingId);
         requireStatus(booking, BookingStatus.PENDING, "Only pending bookings can be accepted.");
         booking.setStatus(BookingStatus.CONFIRMED);
-        return bookingMapper.toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        notificationService.bookingStatusChanged(saved);
+        return bookingMapper.toResponse(saved);
     }
 
     @Override
@@ -135,6 +139,17 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findHostBookingForUpdate(hostId, bookingId);
         requireStatus(booking, BookingStatus.PENDING, "Only pending bookings can be rejected.");
         booking.setStatus(BookingStatus.REJECTED);
+        Booking saved = bookingRepository.save(booking);
+        notificationService.bookingStatusChanged(saved);
+        return bookingMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse completeBooking(Long hostId, Long bookingId) {
+        Booking booking = findHostBookingForUpdate(hostId, bookingId);
+        requireStatus(booking, BookingStatus.CONFIRMED, "Only confirmed bookings can be completed.");
+        booking.setStatus(BookingStatus.COMPLETED);
         return bookingMapper.toResponse(bookingRepository.save(booking));
     }
 
@@ -149,7 +164,9 @@ public class BookingServiceImpl implements BookingService {
         }
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancelledAt(Instant.now());
-        return bookingMapper.toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        notificationService.bookingStatusChanged(saved);
+        return bookingMapper.toResponse(saved);
     }
 
     private void ensureAvailable(Long propertyId, LocalDate checkInDate, LocalDate checkOutDate) {

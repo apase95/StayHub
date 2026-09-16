@@ -48,6 +48,8 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/home/HomeController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostPropertyRestController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/notification/EmailNotificationService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/notification/NotificationService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/MockPaymentService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/Payment.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/PaymentMethod.java
@@ -76,6 +78,14 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertyResponse.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertySummary.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertyUpdateRequest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/Review.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/ReviewController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/ReviewMapper.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/ReviewRepository.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/ReviewService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/ReviewServiceImpl.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/dto/ReviewCreateRequest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/review/dto/ReviewResponse.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchRepository.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchService.java

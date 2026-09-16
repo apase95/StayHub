@@ -74,6 +74,33 @@
                         </div>
                     </div>
                 </section>
+
+                <section th:if="${viewer == 'guest' and booking.status.name() == 'COMPLETED'}" class="mt-8 rounded-3xl border border-border p-5">
+                    <h2 class="text-xl font-black">Your review</h2>
+                    <div th:if="${reviewError}" class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" th:text="${reviewError}">Review error</div>
+                    <div th:if="${existingReview != null}" class="mt-4 rounded-2xl bg-bg-light p-4">
+                        <p class="font-bold"><span class="text-rating-500">&#9733;</span> <span th:text="${existingReview.rating}">5</span> / 5</p>
+                        <p class="mt-2 whitespace-pre-line text-text-gray" th:text="${existingReview.comment != null ? existingReview.comment : 'No written comment.'}">Review comment</p>
+                    </div>
+                    <form th:if="${existingReview == null}" th:action="@{/bookings/{id}/reviews(id=${booking.id})}" th:object="${reviewRequest}" method="post" class="mt-4 space-y-4">
+                        <label class="block">
+                            <span class="text-sm font-bold text-text-gray">Rating</span>
+                            <select th:field="*{rating}" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                                <option value="">Choose rating</option>
+                                <option value="5">5 - Excellent</option>
+                                <option value="4">4 - Great</option>
+                                <option value="3">3 - Good</option>
+                                <option value="2">2 - Fair</option>
+                                <option value="1">1 - Poor</option>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-bold text-text-gray">Comment</span>
+                            <textarea th:field="*{comment}" rows="4" maxlength="2000" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500" placeholder="Share what future guests should know."></textarea>
+                        </label>
+                        <button class="rounded-2xl bg-primary-500 px-5 py-3 font-bold text-white hover:bg-primary-600">Submit review</button>
+                    </form>
+                </section>
             </div>
 
             <aside class="border-t border-border bg-bg-light p-6 lg:border-l lg:border-t-0 lg:p-8">
@@ -99,7 +126,11 @@
                             <button class="w-full rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700">Reject request</button>
                         </form>
                     </div>
+                    <form th:if="${viewer == 'host' and booking.status.name() == 'CONFIRMED'}" th:action="@{/host/bookings/{id}/complete(id=${booking.id})}" method="post">
+                        <button class="w-full rounded-2xl bg-text-900 px-5 py-3 font-bold text-white hover:bg-black">Mark as completed</button>
+                    </form>
                     <a th:href="@{/properties/{id}(id=${booking.propertyId})}" class="block rounded-2xl border border-text-900 px-5 py-3 text-center font-bold hover:bg-text-900 hover:text-white">View property</a>
+                    <a th:if="${viewer == 'guest'}" th:href="@{/bookings}" class="block rounded-2xl border border-text-900 px-5 py-3 text-center font-bold hover:bg-text-900 hover:text-white">My booking</a>
                 </div>
             </aside>
         </div>
