@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment success - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-bg-light text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="mx-auto max-w-4xl px-5 py-10 lg:px-10">
+    <section class="overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-slate-200/60">
+        <div class="bg-text-900 px-6 py-10 text-white lg:px-10">
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Mock payment success</p>
+            <h1 class="mt-3 text-3xl font-black tracking-tight md:text-5xl">Your request is waiting for host approval</h1>
+            <p class="mt-4 max-w-2xl text-white/75" th:text="${paymentMessage}">Mock payment completed successfully.</p>
+        </div>
+
+        <div class="grid gap-8 p-6 lg:grid-cols-[1fr_320px] lg:p-10">
+            <div>
+                <h2 class="text-2xl font-black" th:text="${booking.propertyTitle}">Property title</h2>
+                <p class="mt-2 text-text-gray" th:text="|${booking.propertyCity} · Hosted by ${booking.hostName}|">City</p>
+
+                <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Check-in</p>
+                        <p class="mt-2 font-black" th:text="${booking.checkInDate}">2026-09-20</p>
+                    </div>
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Check-out</p>
+                        <p class="mt-2 font-black" th:text="${booking.checkOutDate}">2026-09-23</p>
+                    </div>
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Guests</p>
+                        <p class="mt-2 font-black" th:text="${booking.guests}">2</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 rounded-3xl bg-bg-light p-5">
+                    <p class="text-sm font-bold uppercase tracking-wide text-text-gray">Booking status</p>
+                    <p class="mt-2 inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-black text-amber-800" th:text="${booking.status}">PENDING</p>
+                    <p class="mt-4 text-sm leading-6 text-text-gray">The host can accept or reject this request in the next Track C tasks. Payment records will be persisted when TSK-041/042 are implemented.</p>
+                </div>
+            </div>
+
+            <aside class="rounded-3xl border border-border p-5">
+                <h2 class="text-xl font-black">Paid amount</h2>
+                <div class="mt-5 space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="text-text-gray" th:text="|${#numbers.formatDecimal(booking.nightlyPrice, 0, 'COMMA', 0, 'POINT')} x ${booking.nights} nights|">Nightly</span><strong th:text="${#numbers.formatDecimal(booking.subtotal, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="flex justify-between"><span class="text-text-gray">Cleaning fee</span><strong th:text="${#numbers.formatDecimal(booking.cleaningFee, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="flex justify-between"><span class="text-text-gray">Service fee</span><strong th:text="${#numbers.formatDecimal(booking.serviceFee, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="border-t border-border pt-3">
+                        <div class="flex justify-between text-lg"><span class="font-black">Total</span><strong th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    </div>
+                </div>
+                <a th:href="@{/properties/{id}(id=${booking.propertyId})}" class="mt-6 block rounded-2xl border border-text-900 px-5 py-3 text-center font-bold hover:bg-text-900 hover:text-white">View property</a>
+            </aside>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

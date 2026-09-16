@@ -18,7 +18,12 @@ public interface PropertyRepository extends JpaRepository<Property, Long>, JpaSp
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Property p where p.id = :propertyId and p.host.id = :hostId")
     Optional<Property> findOwnedPropertyForUpdate(@Param("propertyId") Long propertyId,
-                                                  @Param("hostId") Long hostId);
+                                                   @Param("hostId") Long hostId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Property p where p.id = :propertyId and p.status = :status")
+    Optional<Property> findByIdAndStatusForUpdate(@Param("propertyId") Long propertyId,
+                                                  @Param("status") PropertyStatus status);
 
     List<Property> findAllByHostIdOrderByUpdatedAtDesc(Long hostId);
 }

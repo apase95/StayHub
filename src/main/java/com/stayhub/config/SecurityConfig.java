@@ -39,6 +39,7 @@ public class SecurityConfig {
                         "/properties", "/properties/*",
                         "/api/v1/properties", "/api/v1/properties/*",
                         "/api/v1/amenities").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/bookings/check-availability").permitAll()
                 .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")                
                 .requestMatchers("/host/**", "/api/v1/host/**").hasAnyRole("HOST", "ADMIN")
                 .anyRequest().authenticated()
