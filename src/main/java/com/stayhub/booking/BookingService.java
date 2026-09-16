@@ -27,5 +27,7 @@ public interface BookingService {
 
     BookingResponse rejectBooking(Long hostId, Long bookingId);
 
+    BookingResponse completeBooking(Long hostId, Long bookingId);
+
     BookingResponse cancelBooking(Long guestId, Long bookingId);
 }

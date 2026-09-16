@@ -43,3 +43,11 @@ app:
       cloud-name: ${CLOUDINARY_CLOUD_NAME:}
       api-key: ${CLOUDINARY_API_KEY:}
       api-secret: ${CLOUDINARY_API_SECRET:}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    system-name: ${MAIL_SYSTEM_NAME:StayHub System}
+    from: ${MAIL_FROM:no-reply@stayhub.local}
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}

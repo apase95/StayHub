@@ -2,6 +2,7 @@ package com.stayhub.property;
 
 import com.stayhub.search.SearchService;
 import com.stayhub.search.dto.SearchCriteria;
+import com.stayhub.review.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -16,6 +17,7 @@ public class PropertyController {
 
     private final PropertyService propertyService;
     private final SearchService searchService;
+    private final ReviewService reviewService;
 
     @GetMapping("/properties")
     public String search(SearchCriteria criteria,
@@ -31,6 +33,7 @@ public class PropertyController {
     @GetMapping("/properties/{id}")
     public String showProperty(@PathVariable Long id, Model model) {
         model.addAttribute("property", propertyService.getPublicProperty(id));
+        model.addAttribute("reviews", reviewService.getPropertyReviews(id));
         return "property/property-detail";
     }
 }

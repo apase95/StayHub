@@ -63,6 +63,15 @@ public class HostController {
         return "redirect:/host/dashboard";
     }
 
+    @PostMapping("/bookings/{id}/complete")
+    public String completeBooking(@AuthenticationPrincipal UserPrincipal principal,
+                                  @PathVariable Long id,
+                                  RedirectAttributes redirectAttributes) {
+        bookingService.completeBooking(principal.getId(), id);
+        redirectAttributes.addFlashAttribute("message", "Booking marked as completed.");
+        return "redirect:/host/bookings/" + id;
+    }
+
     @GetMapping("/properties/new")
     public String showCreateForm(Model model) {
         if (!model.containsAttribute("propertyRequest")) {

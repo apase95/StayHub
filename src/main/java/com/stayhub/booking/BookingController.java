@@ -5,6 +5,8 @@ import com.stayhub.booking.dto.BookingCreateRequest;
 import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
 import com.stayhub.property.PropertyService;
+import com.stayhub.review.ReviewService;
+import com.stayhub.review.dto.ReviewCreateRequest;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +29,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final PropertyService propertyService;
+    private final ReviewService reviewService;
 
     @GetMapping("/properties/{id}/book")
     public String showBookingPage(@PathVariable Long id,
@@ -58,8 +61,9 @@ public class BookingController {
         }
         try {
             var booking = bookingService.createBooking(principal.getId(), request);
-            redirectAttributes.addFlashAttribute("paymentMessage", "Mock payment completed successfully.");
-            return "redirect:/bookings/" + booking.getId() + "/payment";
+            redirectAttributes.addFlashAttribute("message",
+                    "Mock payment completed successfully. Your request is waiting for host approval.");
+            return "redirect:/bookings/" + booking.getId();
         } catch (BusinessException exception) {
             addBookingPageModel(model, request, principal, exception.getMessage());
             return "booking/booking";
@@ -79,7 +83,7 @@ public class BookingController {
 
     @GetMapping("/bookings")
     public String showMyBookings(@AuthenticationPrincipal UserPrincipal principal,
-                                 @RequestParam(defaultValue = "upcoming") String tab,
+                                 @RequestParam(defaultValue = "pending") String tab,
                                  Model model) {
         List<BookingResponse> bookings = bookingService.getGuestBookings(principal.getId());
         model.addAttribute("tab", tab);
@@ -96,8 +100,8 @@ public class BookingController {
     public String showBookingDetail(@PathVariable Long id,
                                     @AuthenticationPrincipal UserPrincipal principal,
                                     Model model) {
-        model.addAttribute("booking", bookingService.getBookingForGuest(principal.getId(), id));
-        model.addAttribute("viewer", "guest");
+        BookingResponse booking = bookingService.getBookingForGuest(principal.getId(), id);
+        addBookingDetailModel(model, booking, "guest");
         return "booking/booking-detail";
     }
 
@@ -114,9 +118,18 @@ public class BookingController {
     public String showHostBookingDetail(@PathVariable Long id,
                                         @AuthenticationPrincipal UserPrincipal principal,
                                         Model model) {
-        model.addAttribute("booking", bookingService.getBookingForHost(principal.getId(), id));
-        model.addAttribute("viewer", "host");
+        BookingResponse booking = bookingService.getBookingForHost(principal.getId(), id);
+        addBookingDetailModel(model, booking, "host");
         return "booking/booking-detail";
+    }
+
+    private void addBookingDetailModel(Model model, BookingResponse booking, String viewer) {
+        model.addAttribute("booking", booking);
+        model.addAttribute("viewer", viewer);
+        model.addAttribute("existingReview", reviewService.getReviewByBooking(booking.getId()).orElse(null));
+        if (!model.containsAttribute("reviewRequest")) {
+            model.addAttribute("reviewRequest", new ReviewCreateRequest());
+        }
     }
 
     private void addBookingPageModel(Model model, BookingCreateRequest request, UserPrincipal principal, String errorMessage) {
