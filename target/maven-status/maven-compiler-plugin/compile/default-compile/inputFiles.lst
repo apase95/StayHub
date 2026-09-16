@@ -48,6 +48,12 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/home/HomeController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostPropertyRestController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/MockPaymentService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/Payment.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/PaymentMethod.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/PaymentRepository.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/PaymentService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/PaymentStatus.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/Amenity.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/AmenityRepository.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/AmenityRestController.java

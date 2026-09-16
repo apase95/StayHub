@@ -1,6 +1,7 @@
 package com.stayhub.host;
 
 import com.stayhub.auth.UserPrincipal;
+import com.stayhub.booking.BookingService;
 import com.stayhub.property.PropertyStatus;
 import com.stayhub.property.PropertyService;
 import com.stayhub.property.PropertyType;
@@ -28,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class HostController {
 
     private final PropertyService propertyService;
+    private final BookingService bookingService;
 
     @GetMapping({"/dashboard", "/properties"})
     public String showProperties(@AuthenticationPrincipal UserPrincipal principal, Model model) {
@@ -37,7 +39,28 @@ public class HostController {
         model.addAttribute("activeProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.ACTIVE).count());
         model.addAttribute("draftProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.DRAFT).count());
         model.addAttribute("archivedProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.INACTIVE).count());
+        var bookingRequests = bookingService.getBookingRequestsByHost(principal.getId());
+        model.addAttribute("bookingRequests", bookingRequests);
+        model.addAttribute("pendingBookingRequests", bookingRequests.size());
         return "host/dashboard";
+    }
+
+    @PostMapping("/bookings/{id}/accept")
+    public String acceptBooking(@AuthenticationPrincipal UserPrincipal principal,
+                                @PathVariable Long id,
+                                RedirectAttributes redirectAttributes) {
+        bookingService.acceptBooking(principal.getId(), id);
+        redirectAttributes.addFlashAttribute("message", "Booking request accepted.");
+        return "redirect:/host/dashboard";
+    }
+
+    @PostMapping("/bookings/{id}/reject")
+    public String rejectBooking(@AuthenticationPrincipal UserPrincipal principal,
+                                @PathVariable Long id,
+                                RedirectAttributes redirectAttributes) {
+        bookingService.rejectBooking(principal.getId(), id);
+        redirectAttributes.addFlashAttribute("message", "Booking request rejected.");
+        return "redirect:/host/dashboard";
     }
 
     @GetMapping("/properties/new")

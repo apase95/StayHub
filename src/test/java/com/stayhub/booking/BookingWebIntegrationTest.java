@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.stayhub.auth.UserPrincipal;
+import com.stayhub.payment.PaymentRepository;
 import com.stayhub.property.Property;
 import com.stayhub.property.PropertyRepository;
 import com.stayhub.property.PropertyStatus;
@@ -41,30 +42,43 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
     private BookingRepository bookingRepository;
 
     @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
     private PropertyRepository propertyRepository;
 
     @Autowired
     private UserRepository userRepository;
 
     private User guest;
+    private User host;
     private Property property;
     private UsernamePasswordAuthenticationToken authentication;
+    private UsernamePasswordAuthenticationToken hostAuthentication;
 
     @BeforeEach
     void setUp() {
+        paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
         userRepository.deleteAll();
-        User host = userRepository.save(user("booking-web-host@example.com", UserRole.HOST));
+        host = userRepository.save(user("booking-web-host@example.com", UserRole.HOST));
         guest = userRepository.save(user("booking-web-guest@example.com", UserRole.GUEST));
         property = propertyRepository.save(property(host));
         UserPrincipal principal = UserPrincipal.create(guest);
         authentication = new UsernamePasswordAuthenticationToken(
                 principal, principal.getPassword(), principal.getAuthorities());
+        UserPrincipal hostPrincipal = UserPrincipal.create(host);
+        hostAuthentication = new UsernamePasswordAuthenticationToken(
+                hostPrincipal, hostPrincipal.getPassword(), hostPrincipal.getAuthorities());
     }
 
     @AfterEach
     void cleanUp() {
+        paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
         userRepository.deleteAll();
@@ -136,6 +150,55 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("booking/payment"))
                 .andExpect(model().attributeExists("booking"));
+
+        mockMvc.perform(get("/bookings")
+                        .param("tab", "pending")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("booking/my-bookings"))
+                .andExpect(model().attributeExists("bookings"));
+
+        mockMvc.perform(get("/bookings/{id}", booking.getId())
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("booking/booking-detail"))
+                .andExpect(model().attribute("viewer", "guest"));
+    }
+
+    @Test
+    void hostCanReadRequestsAndAcceptBookingThroughApiAndMvc() throws Exception {
+        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
+                LocalDate.now().plusDays(20), LocalDate.now().plusDays(22), 2));
+
+        mockMvc.perform(get("/api/v1/bookings/host/requests")
+                        .with(authentication(hostAuthentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].id").value(booking.getId()));
+
+        mockMvc.perform(post("/api/v1/bookings/host/{id}/accept", booking.getId())
+                        .with(authentication(hostAuthentication))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        mockMvc.perform(get("/host/bookings/{id}", booking.getId())
+                        .with(authentication(hostAuthentication)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("booking/booking-detail"))
+                .andExpect(model().attribute("viewer", "host"));
+    }
+
+    @Test
+    void guestCanCancelBookingThroughMvc() throws Exception {
+        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
+                LocalDate.now().plusDays(30), LocalDate.now().plusDays(32), 2));
+
+        mockMvc.perform(post("/bookings/{id}/cancel", booking.getId())
+                        .with(authentication(authentication))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/bookings/*"));
     }
 
     private void createExistingBooking(LocalDate checkInDate, LocalDate checkOutDate) {
@@ -151,6 +214,15 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                 .totalPrice(new BigDecimal("2300000.00"))
                 .status(BookingStatus.PENDING)
                 .build());
+    }
+
+    private com.stayhub.booking.dto.BookingCreateRequest bookingRequest(LocalDate checkInDate, LocalDate checkOutDate, int guests) {
+        var request = new com.stayhub.booking.dto.BookingCreateRequest();
+        request.setPropertyId(property.getId());
+        request.setCheckInDate(checkInDate);
+        request.setCheckOutDate(checkOutDate);
+        request.setGuests(guests);
+        return request;
     }
 
     private User user(String email, UserRole role) {

@@ -6,6 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.stayhub.booking.dto.AvailabilityRequest;
 import com.stayhub.booking.dto.BookingCreateRequest;
 import com.stayhub.common.exception.BusinessException;
+import com.stayhub.common.exception.InvalidStateTransitionException;
+import com.stayhub.payment.PaymentMethod;
+import com.stayhub.payment.PaymentRepository;
+import com.stayhub.payment.PaymentStatus;
 import com.stayhub.property.Property;
 import com.stayhub.property.PropertyRepository;
 import com.stayhub.property.PropertyStatus;
@@ -31,6 +35,9 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
     private BookingRepository bookingRepository;
 
     @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
     private PropertyRepository propertyRepository;
 
     @Autowired
@@ -42,6 +49,7 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
         userRepository.deleteAll();
@@ -52,6 +60,7 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
 
     @AfterEach
     void cleanUp() {
+        paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         propertyRepository.deleteAll();
         userRepository.deleteAll();
@@ -65,6 +74,9 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
         var response = bookingService.createBooking(guest.getId(), request);
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
+        assertThat(response.getPaymentMethod()).isEqualTo(PaymentMethod.MOCK);
+        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
+        assertThat(response.getTransactionId()).startsWith("MOCK-");
         assertThat(response.getNightlyPrice()).isEqualByComparingTo("1000000.00");
         assertThat(response.getSubtotal()).isEqualByComparingTo("3000000.00");
         assertThat(response.getCleaningFee()).isEqualByComparingTo("100000.00");
@@ -76,6 +88,32 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
 
         Booking saved = bookingRepository.findById(response.getId()).orElseThrow();
         assertThat(saved.getNightlyPrice()).isEqualByComparingTo("1000000.00");
+        assertThat(paymentRepository.findByBookingId(response.getId())).isPresent();
+    }
+
+    @Test
+    void hostCanAcceptOrRejectPendingBookingsOnly() {
+        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
+                LocalDate.now().plusDays(40), LocalDate.now().plusDays(42), 2));
+
+        var accepted = bookingService.acceptBooking(host.getId(), booking.getId());
+
+        assertThat(accepted.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        assertThatThrownBy(() -> bookingService.rejectBooking(host.getId(), booking.getId()))
+                .isInstanceOf(InvalidStateTransitionException.class);
+    }
+
+    @Test
+    void guestCanCancelPendingOrConfirmedBooking() {
+        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
+                LocalDate.now().plusDays(50), LocalDate.now().plusDays(52), 2));
+
+        var cancelled = bookingService.cancelBooking(guest.getId(), booking.getId());
+
+        assertThat(cancelled.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(cancelled.getCancelledAt()).isNotNull();
+        assertThatThrownBy(() -> bookingService.cancelBooking(guest.getId(), booking.getId()))
+                .isInstanceOf(InvalidStateTransitionException.class);
     }
 
     @Test
