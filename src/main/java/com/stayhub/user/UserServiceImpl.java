@@ -88,6 +88,19 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    @Transactional
+    public UserResponse changeRole(Long userId, UserRole role) {
+        User user = findEntityById(userId);
+        if (user.getRole() == UserRole.ADMIN && role != UserRole.ADMIN
+                && userRepository.countByRoleAndStatus(UserRole.ADMIN, UserStatus.ACTIVE) <= 1) {
+            throw new BusinessException("ERR_LAST_ADMIN", "Cannot remove the last active admin account.");
+        }
+        user.setRole(role);
+        user.setStatus(UserStatus.ACTIVE);
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
     private User findEntityByEmail(String email) {
         String normalizedEmail = EmailNormalizer.normalize(email);
         return userRepository.findByEmail(normalizedEmail)

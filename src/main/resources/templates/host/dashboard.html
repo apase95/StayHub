@@ -25,6 +25,35 @@
     <div th:if="${message}" class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800"
          th:text="${message}"></div>
 
+    <section class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <p class="text-sm text-text-gray">Total listings</p>
+            <p class="mt-2 text-3xl font-black" th:text="${totalProperties}">0</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <p class="text-sm text-text-gray">Active</p>
+            <p class="mt-2 text-3xl font-black text-success-500" th:text="${activeProperties}">0</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <p class="text-sm text-text-gray">Drafts</p>
+            <p class="mt-2 text-3xl font-black text-warning-500" th:text="${draftProperties}">0</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <p class="text-sm text-text-gray">Archived</p>
+            <p class="mt-2 text-3xl font-black" th:text="${archivedProperties}">0</p>
+        </div>
+    </section>
+
+    <section class="mb-8 rounded-2xl border border-border bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-xl font-black">Booking requests</h2>
+                <p class="mt-1 text-sm text-text-gray">Pending guest requests will appear here after Track C booking APIs are available.</p>
+            </div>
+            <span class="rounded-full bg-bg-light px-4 py-2 text-sm font-bold text-text-gray">0 pending</span>
+        </div>
+    </section>
+
     <section th:if="${#lists.isEmpty(properties)}"
              class="rounded-2xl border border-dashed border-border bg-white px-6 py-16 text-center">
         <h2 class="text-xl font-bold">No properties yet</h2>

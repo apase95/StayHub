@@ -1,25 +1,109 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StayHub - Discover Your Perfect Getaway</title>
-    <!-- Tailwind CSS -->
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
 </head>
-<body class="bg-bg-white text-text-900 font-sans flex flex-col min-h-screen m-0 p-0">
-    
-    <!-- Navbar Fragment -->
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<body class="min-h-screen bg-bg-white text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-6 lg:px-10 w-full mt-8">
-        <h1 class="text-4xl font-bold text-primary-500 mb-4">Trang chủ StayHub đã hoạt động!</h1>
-        <p class="text-text-gray text-lg" th:text="${message}"></p>
-    </main>
+<main>
+    <section class="relative overflow-hidden bg-slate-950 text-white">
+        <div class="absolute inset-0 opacity-35">
+            <div class="h-full w-full bg-[radial-gradient(circle_at_top_left,_#FF6B6B,_transparent_35%),radial-gradient(circle_at_bottom_right,_#38BDF8,_transparent_30%)]"></div>
+        </div>
+        <div class="relative mx-auto max-w-7xl px-5 py-16 lg:px-10 lg:py-24">
+            <div class="max-w-3xl">
+                <p class="mb-4 text-sm font-bold uppercase tracking-[0.24em] text-primary-500">StayHub escapes</p>
+                <h1 class="text-4xl font-black tracking-tight md:text-6xl">Find a stay that feels designed for your trip.</h1>
+                <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-200">Search homes, villas, apartments and resorts with flexible filters for guests, dates and comfort.</p>
+            </div>
 
-    <!-- Footer Fragment -->
-    <div th:replace="~{fragments/footer :: footer}"></div>
+            <form th:action="@{/properties}" method="get" class="mt-10 grid gap-3 rounded-3xl bg-white p-4 text-text-900 shadow-2xl md:grid-cols-[1.5fr_1fr_1fr_0.8fr_auto] md:items-end">
+                <label class="block">
+                    <span class="text-xs font-bold uppercase tracking-wide text-text-gray">Where</span>
+                    <input name="location" type="text" placeholder="Da Nang, Hanoi, villa..." class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                </label>
+                <label class="block">
+                    <span class="text-xs font-bold uppercase tracking-wide text-text-gray">Check-in</span>
+                    <input name="checkIn" type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                </label>
+                <label class="block">
+                    <span class="text-xs font-bold uppercase tracking-wide text-text-gray">Check-out</span>
+                    <input name="checkOut" type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                </label>
+                <label class="block">
+                    <span class="text-xs font-bold uppercase tracking-wide text-text-gray">Guests</span>
+                    <input name="guests" type="number" min="1" placeholder="2" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                </label>
+                <button type="submit" class="rounded-2xl bg-primary-500 px-7 py-4 font-bold text-white transition hover:bg-primary-600">Search</button>
+            </form>
+        </div>
+    </section>
 
+    <section class="mx-auto max-w-7xl px-5 py-14 lg:px-10">
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+                <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Popular destinations</p>
+                <h2 class="mt-2 text-3xl font-black">Start with a city you love</h2>
+            </div>
+            <a th:href="@{/properties}" class="font-bold text-primary-500 hover:text-primary-600">View all stays</a>
+        </div>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <a th:href="@{/properties(location='Da Nang')}" class="group rounded-3xl bg-bg-light p-5 transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-5 h-32 rounded-2xl bg-gradient-to-br from-sky-200 to-blue-500"></div>
+                <h3 class="text-xl font-black">Da Nang</h3>
+                <p class="mt-2 text-sm text-text-gray">Beach houses and city apartments.</p>
+            </a>
+            <a th:href="@{/properties(location='Hanoi')}" class="group rounded-3xl bg-bg-light p-5 transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-5 h-32 rounded-2xl bg-gradient-to-br from-amber-200 to-orange-500"></div>
+                <h3 class="text-xl font-black">Hanoi</h3>
+                <p class="mt-2 text-sm text-text-gray">Old Quarter homes and work stays.</p>
+            </a>
+            <a th:href="@{/properties(location='Da Lat')}" class="group rounded-3xl bg-bg-light p-5 transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-5 h-32 rounded-2xl bg-gradient-to-br from-emerald-200 to-green-600"></div>
+                <h3 class="text-xl font-black">Da Lat</h3>
+                <p class="mt-2 text-sm text-text-gray">Cool villas for slow weekends.</p>
+            </a>
+            <a th:href="@{/properties(location='Phu Quoc')}" class="group rounded-3xl bg-bg-light p-5 transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-5 h-32 rounded-2xl bg-gradient-to-br from-rose-200 to-primary-500"></div>
+                <h3 class="text-xl font-black">Phu Quoc</h3>
+                <p class="mt-2 text-sm text-text-gray">Resorts, pools and ocean views.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="bg-bg-light py-14">
+        <div class="mx-auto max-w-7xl px-5 lg:px-10">
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Popular categories</p>
+            <h2 class="mt-2 text-3xl font-black">Choose your travel style</h2>
+            <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+                <a th:href="@{/properties(type='APARTMENT')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">Apartment</a>
+                <a th:href="@{/properties(type='HOUSE')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">House</a>
+                <a th:href="@{/properties(type='VILLA')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">Villa</a>
+                <a th:href="@{/properties(type='HOTEL_ROOM')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">Hotel room</a>
+                <a th:href="@{/properties(type='HOMESTAY')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">Homestay</a>
+                <a th:href="@{/properties(type='RESORT')}" class="rounded-3xl bg-white p-5 font-bold shadow-sm hover:shadow-lg">Resort</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-5 py-14 lg:px-10">
+        <div class="rounded-[2rem] bg-slate-950 p-8 text-white md:p-12">
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Featured properties</p>
+            <div class="mt-4 grid gap-8 md:grid-cols-[1fr_0.8fr] md:items-center">
+                <div>
+                    <h2 class="text-3xl font-black md:text-4xl">Curated homes are ready for Track B search.</h2>
+                    <p class="mt-4 leading-7 text-slate-300">Use the listing page to filter by price, property type, bedrooms, amenities, rating and sort order.</p>
+                </div>
+                <a th:href="@{/properties(sort='ratingAvg,desc')}" class="inline-flex justify-center rounded-2xl bg-white px-6 py-4 font-bold text-text-900 hover:bg-slate-100">Explore top rated</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

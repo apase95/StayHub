@@ -1,68 +1,107 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - StayHub</title>
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
 </head>
-<body class="bg-bg-light text-text-900 font-sans flex min-h-screen">
-
-    <!-- Simple Admin Sidebar (Temporary for navigation) -->
-    <aside class="w-64 bg-bg-white border-r border-border flex flex-col hidden md:flex">
-        <div class="h-16 flex items-center px-6 border-b border-border">
+<body class="flex min-h-screen bg-bg-light text-text-900 font-sans">
+    <aside class="hidden w-64 flex-col border-r border-border bg-bg-white md:flex">
+        <div class="flex h-16 items-center border-b border-border px-6">
             <span class="text-xl font-bold text-primary-500">StayHub Admin</span>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a th:href="@{/admin/bookings}" class="block px-4 py-3 rounded-lg bg-primary-500 bg-opacity-10 text-primary-600 font-semibold">
-                Dashboard & Bookings
-            </a>
-            <a th:href="@{/admin/users}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition">
-                Manage Users
-            </a>
-            <a th:href="@{/}" class="block px-4 py-3 rounded-lg text-text-gray hover:bg-bg-light hover:text-text-900 transition mt-auto">
-                Back to Website
-            </a>
+        <nav class="flex-1 space-y-2 p-4">
+            <a th:href="@{/admin/bookings}" class="block rounded-lg bg-primary-500 bg-opacity-10 px-4 py-3 font-semibold text-primary-600">Dashboard & Bookings</a>
+            <a th:href="@{/admin/users}" class="block rounded-lg px-4 py-3 text-text-gray transition hover:bg-bg-light hover:text-text-900">Manage Users</a>
+            <a th:href="@{/}" class="mt-auto block rounded-lg px-4 py-3 text-text-gray transition hover:bg-bg-light hover:text-text-900">Back to Website</a>
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-        <h1 class="text-2xl font-bold mb-6">Platform Overview</h1>
+    <main class="flex-1 p-5 md:p-8">
+        <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+                <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Admin dashboard</p>
+                <h1 class="mt-2 text-3xl font-black">Platform Overview</h1>
+            </div>
+            <a th:href="@{/admin/users}" class="inline-flex rounded-xl bg-text-900 px-5 py-3 font-bold text-white">Manage accounts</a>
+        </div>
 
-        <!-- Stats Big Number Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Total Users -->
-            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
-                <p class="text-sm text-text-gray mb-2">Total Users</p>
-                <h3 class="text-3xl font-bold" th:text="${stats.totalUsers}">0</h3>
+        <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-2xl border border-border bg-bg-white p-6 shadow-sm">
+                <p class="mb-2 text-sm text-text-gray">Total Users</p>
+                <h3 class="text-3xl font-black" th:text="${stats.totalUsers}">0</h3>
             </div>
-            <!-- Active Hosts -->
-            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
-                <p class="text-sm text-text-gray mb-2">Active Hosts</p>
-                <h3 class="text-3xl font-bold" th:text="${stats.activeHosts}">0</h3>
+            <div class="rounded-2xl border border-border bg-bg-white p-6 shadow-sm">
+                <p class="mb-2 text-sm text-text-gray">Active Hosts</p>
+                <h3 class="text-3xl font-black" th:text="${stats.activeHosts}">0</h3>
             </div>
-            <!-- Platform Revenue -->
-            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
-                <p class="text-sm text-text-gray mb-2">Platform Revenue</p>
-                <h3 class="text-3xl font-bold text-success-500" th:text="'$' + ${stats.platformRevenue}">$0</h3>
+            <div class="rounded-2xl border border-border bg-bg-white p-6 shadow-sm">
+                <p class="mb-2 text-sm text-text-gray">Platform Revenue</p>
+                <h3 class="text-3xl font-black text-success-500" th:text="${#numbers.formatDecimal(stats.platformRevenue, 0, 'COMMA', 0, 'POINT')}">0</h3>
+                <p class="mt-2 text-xs text-text-gray">Real payment data starts in Track C.</p>
             </div>
-            <!-- Total Bookings -->
-            <div class="bg-bg-white border border-border rounded-xl p-6 shadow-sm">
-                <p class="text-sm text-text-gray mb-2">Total Bookings</p>
-                <h3 class="text-3xl font-bold" th:text="${stats.totalBookings}">0</h3>
+            <div class="rounded-2xl border border-border bg-bg-white p-6 shadow-sm">
+                <p class="mb-2 text-sm text-text-gray">Total Bookings</p>
+                <h3 class="text-3xl font-black" th:text="${stats.totalBookings}">0</h3>
+                <p class="mt-2 text-xs text-text-gray">Booking table is pending Track C.</p>
             </div>
         </div>
 
-        <!-- Bookings Table Placeholder -->
-        <div class="bg-bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-border">
-                <h2 class="text-lg font-bold">Recent Bookings (Coming in Track C)</h2>
+        <section class="overflow-hidden rounded-2xl border border-border bg-bg-white shadow-sm">
+            <div class="border-b border-border p-6">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <h2 class="text-xl font-black">System Bookings</h2>
+                        <p class="mt-1 text-sm text-text-gray">Search, status filter and pagination are wired for Track C booking data.</p>
+                    </div>
+                    <form th:action="@{/admin/bookings}" method="get" class="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+                        <input name="keyword" th:value="${keyword}" placeholder="Guest, host, property..." class="rounded-xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                        <select name="status" class="rounded-xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                            <option value="">All statuses</option>
+                            <option th:each="bookingStatus : ${bookingStatuses}" th:value="${bookingStatus}" th:selected="${bookingStatus == status}" th:text="${bookingStatus}">PENDING</option>
+                        </select>
+                        <button class="rounded-xl bg-primary-500 px-5 py-3 font-bold text-white hover:bg-primary-600">Filter</button>
+                    </form>
+                </div>
             </div>
-            <div class="p-6 text-center text-text-gray">
-                Real booking data will be displayed here once Track C is completed.
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[860px] text-left">
+                    <thead class="border-b border-border bg-bg-light text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-bold">Booking ID</th>
+                        <th class="px-6 py-4 font-bold">Guest</th>
+                        <th class="px-6 py-4 font-bold">Property</th>
+                        <th class="px-6 py-4 font-bold">Dates</th>
+                        <th class="px-6 py-4 font-bold">Status</th>
+                        <th class="px-6 py-4 font-bold">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${bookingPage.empty}">
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <h3 class="text-lg font-black">No booking records yet</h3>
+                            <p class="mt-2 text-text-gray">Track C will provide booking entities, payment totals and status transitions.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
+
+            <nav class="flex items-center justify-between border-t border-border px-6 py-4 text-sm">
+                <span class="text-text-gray" th:text="|${bookingPage.totalElements} bookings|">0 bookings</span>
+                <div class="flex items-center gap-2">
+                    <a th:href="@{/admin/bookings(page=${bookingPage.number - 1},size=${bookingPage.size},keyword=${keyword},status=${status})}"
+                       th:classappend="${bookingPage.first} ? 'pointer-events-none opacity-50' : ''"
+                       class="rounded-lg border border-border px-3 py-2 font-bold">Previous</a>
+                    <span class="rounded-lg bg-bg-light px-3 py-2 font-bold" th:text="|Page ${bookingPage.number + 1}|">Page 1</span>
+                    <a th:href="@{/admin/bookings(page=${bookingPage.number + 1},size=${bookingPage.size},keyword=${keyword},status=${status})}"
+                       th:classappend="${bookingPage.last} ? 'pointer-events-none opacity-50' : ''"
+                       class="rounded-lg border border-border px-3 py-2 font-bold">Next</a>
+                </div>
+            </nav>
+        </section>
     </main>
-
 </body>
 </html>
