@@ -56,6 +56,11 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertyResponse.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertySummary.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/property/dto/PropertyUpdateRequest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchRepository.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/SearchServiceImpl.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/search/dto/SearchCriteria.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/storage/CloudinaryStorageService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/storage/LocalStorageService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/storage/StorageException.java
@@ -63,6 +68,7 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/storage/StoredFile.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/EmailNormalizer.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/User.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserMapper.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRepository.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRole.java

@@ -1,6 +1,7 @@
 package com.stayhub.host;
 
 import com.stayhub.auth.UserPrincipal;
+import com.stayhub.property.PropertyStatus;
 import com.stayhub.property.PropertyService;
 import com.stayhub.property.PropertyType;
 import com.stayhub.property.dto.PropertyCreateRequest;
@@ -30,7 +31,12 @@ public class HostController {
 
     @GetMapping({"/dashboard", "/properties"})
     public String showProperties(@AuthenticationPrincipal UserPrincipal principal, Model model) {
-        model.addAttribute("properties", propertyService.getHostProperties(principal.getId()));
+        var properties = propertyService.getHostProperties(principal.getId());
+        model.addAttribute("properties", properties);
+        model.addAttribute("totalProperties", properties.size());
+        model.addAttribute("activeProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.ACTIVE).count());
+        model.addAttribute("draftProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.DRAFT).count());
+        model.addAttribute("archivedProperties", properties.stream().filter(property -> property.getStatus() == PropertyStatus.INACTIVE).count());
         return "host/dashboard";
     }
 

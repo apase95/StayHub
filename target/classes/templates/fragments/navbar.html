@@ -75,13 +75,13 @@
                         </div>
                         
                         <!-- Core Navigation -->
-                        <a th:href="@{/my-bookings}" class="block px-4 py-3 hover:bg-bg-light font-bold text-text-900">Trips</a>
+                        <a href="#" class="block px-4 py-3 hover:bg-bg-light font-bold text-text-900">Trips <span class="text-xs font-normal text-text-gray">(Track C)</span></a>
                         <a href="#" class="block px-4 py-3 hover:bg-bg-light font-bold text-text-900">Wishlists</a>
                         <hr class="my-1 border-border">
                         
                         <!-- Host Features (Visible to everyone for MVP context, or restrict to HOST role) -->
                         <a sec:authorize="hasAnyRole('HOST','ADMIN')" th:href="@{/host/dashboard}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Manage listings</a>
-                        <a href="#" class="block px-4 py-3 hover:bg-bg-light text-text-900">Account</a>
+                        <a th:href="@{/profile}" class="block px-4 py-3 hover:bg-bg-light text-text-900">Profile</a>
                         <hr class="my-1 border-border">
                         
                         <!-- Logout Action (Requires POST request for Spring Security) -->

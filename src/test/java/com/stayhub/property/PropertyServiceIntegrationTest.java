@@ -123,6 +123,30 @@ class PropertyServiceIntegrationTest extends PostgreSqlIntegrationTest {
     }
 
     @Test
+    void propertyWithMultipleAmenitiesDoesNotDuplicateImages() {
+        Set<Long> amenityIds = amenityRepository.findAllByOrderByNameAsc().stream()
+                .limit(3)
+                .map(Amenity::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        PropertyResponse draft = propertyService.createProperty(host.getId(), createRequest(amenityIds));
+        when(storageService.store(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new StoredFile("/uploads/one.jpg", "one.jpg"))
+                .thenReturn(new StoredFile("/uploads/two.jpg", "two.jpg"))
+                .thenReturn(new StoredFile("/uploads/three.jpg", "three.jpg"));
+
+        var first = propertyService.uploadImage(host.getId(), draft.getId(), image("one.png"), false);
+        var second = propertyService.uploadImage(host.getId(), draft.getId(), image("two.png"), false);
+        var third = propertyService.uploadImage(host.getId(), draft.getId(), image("three.png"), false);
+
+        PropertyResponse response = propertyService.getHostProperty(host.getId(), draft.getId());
+
+        assertThat(response.getAmenities()).hasSize(3);
+        assertThat(response.getImages())
+                .extracting(image -> image.getId())
+                .containsExactly(first.getId(), second.getId(), third.getId());
+    }
+
+    @Test
     void rejectsUnknownAmenitiesAndInvalidImageContent() {
         assertThat(amenityRepository.count()).isGreaterThanOrEqualTo(8);
         assertThatThrownBy(() -> propertyService.createProperty(host.getId(), createRequest(Set.of(Long.MAX_VALUE))))

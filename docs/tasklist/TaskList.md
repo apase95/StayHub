@@ -81,15 +81,15 @@ StayHub/
 
 - [x] **TSK-017** `[FE_Auth]` `templates/auth/login.html`, `register.html`. *(Estimate: 2h · Priority: High)*
 
-- [ ] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). Hiện Account/Profile vẫn là placeholder. *(Estimate: 1h · Priority: Medium)*
+- [x] **TSK-018** `[FE_Core]` Hoàn thiện `fragments/navbar.html` với `sec:authorize` (hiện Profile/My Booking/Logout khi đã login, ẩn khi chưa). Hiện Account/Profile vẫn là placeholder. *(Estimate: 1h · Priority: Medium)*
 
 - [x] **TSK-019** `[DB]` Xác nhận không cần migration quyền hạn riêng: role, status và constraints đã có trong `V1__create_users.sql`. *(Estimate: 0.5h · Priority: Low)*
 
-- [ ] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan với dữ liệu thật (tổng users, active hosts, bookings, revenue). Hiện bookings và revenue vẫn là mock. *(Estimate: 3h · Priority: Medium)*
+- [x] **TSK-020** `[BE_Admin]` `admin/AdminController.java`, `AdminService.java`: dashboard tổng quan với dữ liệu thật (tổng users, active hosts, bookings, revenue). Hiện bookings và revenue vẫn là mock. *(Estimate: 3h · Priority: Medium)*
 
-- [ ] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: Stats Cards + bảng booking toàn hệ thống với search, filter status và pagination. Hiện bảng booking vẫn là placeholder. *(Estimate: 2.5h · Priority: Medium)*
+- [x] **TSK-021** `[FE_Admin]` `templates/admin/bookings.html`: Stats Cards + bảng booking toàn hệ thống với search, filter status và pagination. Hiện bảng booking vẫn là placeholder. *(Estimate: 2.5h · Priority: Medium)*
 
-- [ ] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role). Lock/unlock đã có; role-change chưa triển khai. *(Estimate: 2h · Priority: Low)*
+- [x] **TSK-022** `[BE_Admin]` Quản lý user/host từ admin (khoá tài khoản, đổi role). Lock/unlock đã có; role-change chưa triển khai. *(Estimate: 2h · Priority: Low)*
 
 ## FOUNDATION HARDENING
 
@@ -116,17 +116,17 @@ StayHub/
 
 - [x] **TSK-028** `[BE_Property]` `HomeController` phục vụ `GET /`; `PropertyController` và REST controller phục vụ public detail, chỉ trả listing `ACTIVE`. *(Estimate: 1.5h · Priority: Urgent)*
 
-- [ ] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests theo UI Design System), popular destinations, featured properties, popular categories — responsive (search box chồng dọc trên mobile). *(Estimate: 2.5h · Priority: Urgent)*
+- [x] **TSK-029** `[FE_Home]` `templates/home/index.html`: search box (Where/Check-in/Check-out/Guests theo UI Design System), popular destinations, featured properties, popular categories — responsive (search box chồng dọc trên mobile). *(Estimate: 2.5h · Priority: Urgent)*
 
-- [ ] **TSK-030** `[BE_Search]` `search/SearchController.java`, `SearchService.java`, `SearchRepository.java`, `search/dto/SearchCriteria`: `GET /properties?location=&checkIn=&checkOut=&guests=` + filter (price, type, bedrooms, amenities, rating) + sort + pagination. *(Estimate: 3.5h · Priority: Urgent)*
+- [x] **TSK-030** `[BE_Search]` `search/SearchController.java`, `SearchService.java`, `SearchRepository.java`, `search/dto/SearchCriteria`: `GET /properties?location=&checkIn=&checkOut=&guests=` + filter (price, type, bedrooms, amenities, rating) + sort + pagination. *(Estimate: 3.5h · Priority: Urgent)*
 
-- [ ] **TSK-031** `[FE_Property]` `templates/property/search-results.html` filter sidebar (Price Range slider, Property Type checkboxes, Bedrooms/Beds/Bathrooms, Amenities, Rating) + property list (Property Card component) + sort dropdown + pagination — responsive (filter chuyển thành dropdown trên mobile) *(Estimate: 3h · Priority: Urgent)*
+- [x] **TSK-031** `[FE_Property]` `templates/property/search-results.html` filter sidebar (Price Range slider, Property Type checkboxes, Bedrooms/Beds/Bathrooms, Amenities, Rating) + property list (Property Card component) + sort dropdown + pagination — responsive (filter chuyển thành dropdown trên mobile) *(Estimate: 3h · Priority: Urgent)*
 
-- [ ] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh (main + thumbnail grid, responsive → carousel trên mobile), description, amenities, reviews (hiển thị rating + comment), availability calendar, price box (sticky trên desktop, bottom bar trên mobile) — theo UI Design System. *(Estimate: 3h · Priority: Urgent)*
+- [x] **TSK-032** `[FE_Property]` `templates/property/property-detail.html`: gallery ảnh (main + thumbnail grid, responsive → carousel trên mobile), description, amenities, reviews (hiển thị rating + comment), availability calendar, price box (sticky trên desktop, bottom bar trên mobile) — theo UI Design System. *(Estimate: 3h · Priority: Urgent)*
 
 - [x] **TSK-033** `[BE_Host]` Host MVC + REST CRUD có ownership, archive listing, quản lý ảnh (upload/delete/cover/order) qua `StorageService`; mutation ảnh được serialize và có rollback/after-commit cleanup. *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: phần danh sách property/Add/Edit/Archive đã hoàn thành; danh sách booking request và Stats Cards chờ dữ liệu từ Track C. *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
+- [x] **TSK-034** `[FE_Host]` `templates/host/dashboard.html`: phần danh sách property/Add/Edit/Archive đã hoàn thành; danh sách booking request và Stats Cards chờ dữ liệu từ Track C. *(Estimate: 3h · Priority: High · phụ thuộc TSK-041 của Dev C)*
 
 ---
 

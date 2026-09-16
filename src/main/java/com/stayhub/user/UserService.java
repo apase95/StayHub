@@ -14,4 +14,5 @@ public interface UserService {
     Page<UserResponse> getUsers(int page, int size);
     void lockUser(Long userId);
     void unlockUser(Long userId);
+    UserResponse changeRole(Long userId, UserRole role);
 }

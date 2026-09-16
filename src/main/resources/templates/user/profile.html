@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-bg-light text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="mx-auto max-w-3xl px-5 py-10 lg:px-8">
+    <div class="mb-8">
+        <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Account</p>
+        <h1 class="mt-2 text-3xl font-black">Your profile</h1>
+        <p class="mt-2 text-text-gray">Manage your public StayHub account information.</p>
+    </div>
+
+    <div th:if="${message}" class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${message}"></div>
+
+    <section class="rounded-3xl border border-border bg-white p-6 shadow-sm">
+        <div class="mb-6 grid gap-4 rounded-2xl bg-bg-light p-5 sm:grid-cols-3">
+            <div>
+                <p class="text-xs font-bold uppercase text-text-gray">Email</p>
+                <p class="mt-1 font-bold" th:text="${user.email}">user@example.com</p>
+            </div>
+            <div>
+                <p class="text-xs font-bold uppercase text-text-gray">Role</p>
+                <p class="mt-1 font-bold" th:text="${user.role}">GUEST</p>
+            </div>
+            <div>
+                <p class="text-xs font-bold uppercase text-text-gray">Status</p>
+                <p class="mt-1 font-bold" th:text="${user.status}">ACTIVE</p>
+            </div>
+        </div>
+
+        <form th:action="@{/profile}" th:object="${profileRequest}" method="post" class="space-y-5">
+            <label class="block">
+                <span class="text-sm font-bold">Full name</span>
+                <input th:field="*{fullName}" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                <span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="mt-1 block text-sm text-red-600"></span>
+            </label>
+            <label class="block">
+                <span class="text-sm font-bold">Phone</span>
+                <input th:field="*{phone}" class="mt-2 w-full rounded-2xl border border-border px-4 py-3 outline-none focus:border-primary-500">
+                <span th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="mt-1 block text-sm text-red-600"></span>
+            </label>
+            <button class="rounded-2xl bg-primary-500 px-6 py-3 font-bold text-white hover:bg-primary-600">Save profile</button>
+        </form>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -41,7 +41,7 @@
                         <th class="px-6 py-4 font-semibold text-sm">Email</th>
                         <th class="px-6 py-4 font-semibold text-sm">Role</th>
                         <th class="px-6 py-4 font-semibold text-sm">Status</th>
-                        <th class="px-6 py-4 font-semibold text-sm">Action</th>
+                        <th class="px-6 py-4 font-semibold text-sm">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
@@ -51,11 +51,14 @@
                         <td class="px-6 py-4 text-sm font-semibold" th:text="${user.fullName}">John Doe</td>
                         <td class="px-6 py-4 text-sm text-text-gray" th:text="${user.email}">john@example.com</td>
                         
-                        <!-- Role Badge -->
                         <td class="px-6 py-4">
-                            <span th:text="${user.role}" 
-                                  class="px-3 py-1 rounded-full text-xs font-bold bg-primary-500 bg-opacity-10 text-primary-600">
-                            </span>
+                            <select th:disabled="${user.role.name() == 'ADMIN'}"
+                                    @change="changeRole([[${user.id}]], $event.target.value)"
+                                    class="rounded-lg border border-border bg-white px-3 py-2 text-xs font-bold text-primary-600 disabled:cursor-not-allowed disabled:bg-bg-light">
+                                <option value="GUEST" th:selected="${user.role.name() == 'GUEST'}">GUEST</option>
+                                <option value="HOST" th:selected="${user.role.name() == 'HOST'}">HOST</option>
+                                <option value="ADMIN" th:selected="${user.role.name() == 'ADMIN'}">ADMIN</option>
+                            </select>
                         </td>
                         
                         <!-- Status Badge -->
@@ -68,12 +71,12 @@
                         
                         <!-- Actions (Lock/Unlock) -->
                         <td class="px-6 py-4">
-                            <button th:if="${user.status.name() == 'ACTIVE' and user.role.name() != 'ADMIN'}" 
+                            <button th:if="${user.status.name() == 'ACTIVE' and user.role.name() != 'ADMIN'}"
                                     @click="toggleStatus([[${user.id}]], 'lock')"
-                                    class="text-sm font-semibold text-primary-500 hover:underline">
+                                    class="mr-3 text-sm font-semibold text-primary-500 hover:underline">
                                 Lock
                             </button>
-                            <button th:if="${user.status.name() == 'LOCKED'}" 
+                            <button th:if="${user.status.name() == 'LOCKED'}"
                                     @click="toggleStatus([[${user.id}]], 'unlock')"
                                     class="text-sm font-semibold text-success-500 hover:underline">
                                 Unlock
@@ -103,18 +106,23 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('userManagement', () => ({
+                csrf() {
+                    return {
+                        token: document.querySelector('meta[name="_csrf"]').content,
+                        header: document.querySelector('meta[name="_csrf_header"]').content
+                    };
+                },
                 async toggleStatus(userId, action) {
                     if(!confirm(`Are you sure you want to ${action} this user?`)) return;
 
-                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+                    const csrf = this.csrf();
 
                     try {
                         const response = await fetch(`/api/v1/admin/users/${userId}/${action}`, {
                             method: 'POST',
                             credentials: 'same-origin',
                             headers: {
-                                [csrfHeader]: csrfToken,
+                                [csrf.header]: csrf.token,
                                 'Accept': 'application/json'
                             }
                         });
@@ -131,6 +139,35 @@
                         alert(data.message || 'The request could not be completed.');
                     } catch (error) {
                         alert(error.message || 'The request could not be completed.');
+                    }
+                },
+                async changeRole(userId, role) {
+                    if(!confirm(`Change this account role to ${role}?`)) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const csrf = this.csrf();
+
+                    try {
+                        const response = await fetch(`/api/v1/admin/users/${userId}/role?role=${encodeURIComponent(role)}`, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                [csrf.header]: csrf.token,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            window.location.reload();
+                            return;
+                        }
+                        alert(data.message || 'The role could not be updated.');
+                        window.location.reload();
+                    } catch (error) {
+                        alert(error.message || 'The role could not be updated.');
+                        window.location.reload();
                     }
                 }
             }))
