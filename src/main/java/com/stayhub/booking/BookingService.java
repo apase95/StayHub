@@ -17,7 +17,15 @@ public interface BookingService {
 
     BookingResponse getBookingForGuest(Long guestId, Long bookingId);
 
+    BookingResponse getBookingForHost(Long hostId, Long bookingId);
+
     List<BookingResponse> getGuestBookings(Long guestId);
 
     List<BookingResponse> getBookingRequestsByHost(Long hostId);
+
+    BookingResponse acceptBooking(Long hostId, Long bookingId);
+
+    BookingResponse rejectBooking(Long hostId, Long bookingId);
+
+    BookingResponse cancelBooking(Long guestId, Long bookingId);
 }

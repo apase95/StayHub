@@ -6,12 +6,15 @@ import com.stayhub.booking.dto.BookingCreateRequest;
 import com.stayhub.booking.dto.BookingPriceQuote;
 import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
+import com.stayhub.common.exception.InvalidStateTransitionException;
 import com.stayhub.common.exception.ResourceNotFoundException;
+import com.stayhub.payment.PaymentService;
 import com.stayhub.property.Property;
 import com.stayhub.property.PropertyRepository;
 import com.stayhub.property.PropertyStatus;
 import com.stayhub.user.User;
 import com.stayhub.user.UserRepository;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +35,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingPriceService bookingPriceService;
     private final BookingMapper bookingMapper;
+    private final PaymentService paymentService;
 
     @Override
     @Transactional
@@ -59,7 +63,9 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         try {
-            return bookingMapper.toResponse(bookingRepository.saveAndFlush(booking));
+            Booking saved = bookingRepository.saveAndFlush(booking);
+            saved.setPayment(paymentService.createSuccessfulPayment(saved));
+            return bookingMapper.toResponse(saved);
         } catch (DataIntegrityViolationException exception) {
             throw roomNotAvailable();
         }
@@ -86,8 +92,16 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse getBookingForGuest(Long guestId, Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findDetailedById(bookingId)
                 .filter(found -> found.getGuest().getId().equals(guestId))
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+        return bookingMapper.toResponse(booking);
+    }
+
+    @Override
+    public BookingResponse getBookingForHost(Long hostId, Long bookingId) {
+        Booking booking = bookingRepository.findDetailedById(bookingId)
+                .filter(found -> found.getProperty().getHost().getId().equals(hostId))
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
         return bookingMapper.toResponse(booking);
     }
@@ -104,6 +118,38 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.findBookingRequestsByHost(hostId, BookingStatus.PENDING).stream()
                 .map(bookingMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse acceptBooking(Long hostId, Long bookingId) {
+        Booking booking = findHostBookingForUpdate(hostId, bookingId);
+        requireStatus(booking, BookingStatus.PENDING, "Only pending bookings can be accepted.");
+        booking.setStatus(BookingStatus.CONFIRMED);
+        return bookingMapper.toResponse(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse rejectBooking(Long hostId, Long bookingId) {
+        Booking booking = findHostBookingForUpdate(hostId, bookingId);
+        requireStatus(booking, BookingStatus.PENDING, "Only pending bookings can be rejected.");
+        booking.setStatus(BookingStatus.REJECTED);
+        return bookingMapper.toResponse(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse cancelBooking(Long guestId, Long bookingId) {
+        Booking booking = bookingRepository.findDetailedByIdForUpdate(bookingId)
+                .filter(found -> found.getGuest().getId().equals(guestId))
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new InvalidStateTransitionException("Only pending or confirmed bookings can be cancelled.");
+        }
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(Instant.now());
+        return bookingMapper.toResponse(bookingRepository.save(booking));
     }
 
     private void ensureAvailable(Long propertyId, LocalDate checkInDate, LocalDate checkOutDate) {
@@ -132,5 +178,17 @@ public class BookingServiceImpl implements BookingService {
 
     private BusinessException roomNotAvailable() {
         return new BusinessException("ERR_ROOM_NOT_AVAILABLE", "The selected dates are no longer available.");
+    }
+
+    private Booking findHostBookingForUpdate(Long hostId, Long bookingId) {
+        return bookingRepository.findDetailedByIdForUpdate(bookingId)
+                .filter(found -> found.getProperty().getHost().getId().equals(hostId))
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+    }
+
+    private void requireStatus(Booking booking, BookingStatus expectedStatus, String message) {
+        if (booking.getStatus() != expectedStatus) {
+            throw new InvalidStateTransitionException(message);
+        }
     }
 }

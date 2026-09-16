@@ -1,6 +1,7 @@
 package com.stayhub.booking;
 
 import com.stayhub.booking.dto.BookingResponse;
+import com.stayhub.payment.Payment;
 import com.stayhub.property.PropertyImage;
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
@@ -11,6 +12,7 @@ public class BookingMapper {
 
     public BookingResponse toResponse(Booking booking) {
         long nights = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckOutDate());
+        Payment payment = booking.getPayment();
         String coverImageUrl = booking.getProperty().getImages().stream()
                 .filter(PropertyImage::isCover)
                 .findFirst()
@@ -38,6 +40,10 @@ public class BookingMapper {
                 .serviceFee(booking.getServiceFee())
                 .totalPrice(booking.getTotalPrice())
                 .status(booking.getStatus())
+                .paymentMethod(payment != null ? payment.getPaymentMethod() : null)
+                .paymentStatus(payment != null ? payment.getStatus() : null)
+                .transactionId(payment != null ? payment.getTransactionId() : null)
+                .paidAt(payment != null ? payment.getPaidAt() : null)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
                 .cancelledAt(booking.getCancelledAt())

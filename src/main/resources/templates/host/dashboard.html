@@ -48,9 +48,31 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="text-xl font-black">Booking requests</h2>
-                <p class="mt-1 text-sm text-text-gray">Pending guest requests will appear here after Track C booking APIs are available.</p>
+                <p class="mt-1 text-sm text-text-gray">Review pending guest requests and respond before dates are blocked too long.</p>
             </div>
-            <span class="rounded-full bg-bg-light px-4 py-2 text-sm font-bold text-text-gray">0 pending</span>
+            <span class="rounded-full bg-bg-light px-4 py-2 text-sm font-bold text-text-gray" th:text="|${pendingBookingRequests} pending|">0 pending</span>
+        </div>
+        <div th:if="${#lists.isEmpty(bookingRequests)}" class="mt-5 rounded-2xl border border-dashed border-border p-5 text-sm text-text-gray">
+            No pending booking requests right now.
+        </div>
+        <div th:unless="${#lists.isEmpty(bookingRequests)}" class="mt-5 space-y-4">
+            <article th:each="booking : ${bookingRequests}" class="grid gap-4 rounded-2xl border border-border p-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div>
+                    <p class="text-sm font-bold text-primary-500" th:text="${booking.propertyTitle}">Property</p>
+                    <h3 class="mt-1 text-lg font-black" th:text="|${booking.guestName} · ${booking.guests} guests|">Guest</h3>
+                    <p class="mt-2 text-sm text-text-gray" th:text="|${booking.checkInDate} to ${booking.checkOutDate} · ${booking.nights} nights|">Dates</p>
+                    <p class="mt-2 text-sm"><strong th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT')}">0</strong> total</p>
+                </div>
+                <div class="flex gap-2 lg:justify-end">
+                    <a th:href="@{/host/bookings/{id}(id=${booking.id})}" class="rounded-xl border border-border px-4 py-2 text-sm font-bold hover:bg-bg-light">Details</a>
+                    <form th:action="@{/host/bookings/{id}/accept(id=${booking.id})}" method="post">
+                        <button class="rounded-xl bg-success-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-600">Accept</button>
+                    </form>
+                    <form th:action="@{/host/bookings/{id}/reject(id=${booking.id})}" method="post">
+                        <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Reject</button>
+                    </form>
+                </div>
+            </article>
         </div>
     </section>
 

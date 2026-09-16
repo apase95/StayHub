@@ -41,7 +41,7 @@ public class SecurityConfig {
                         "/api/v1/amenities").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/bookings/check-availability").permitAll()
                 .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")                
-                .requestMatchers("/host/**", "/api/v1/host/**").hasAnyRole("HOST", "ADMIN")
+                .requestMatchers("/host/**", "/api/v1/host/**", "/api/v1/bookings/host/**").hasAnyRole("HOST", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

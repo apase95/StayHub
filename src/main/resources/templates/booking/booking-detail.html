@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking detail - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-bg-light text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="mx-auto max-w-5xl px-5 py-10 lg:px-10">
+    <a th:href="${viewer == 'host'} ? @{/host/dashboard} : @{/bookings}" class="mb-6 inline-flex text-sm font-bold text-primary-500 hover:text-primary-600">Back</a>
+
+    <div th:if="${message}" class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800" th:text="${message}">Message</div>
+
+    <section class="overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-slate-200/60">
+        <div class="grid gap-0 lg:grid-cols-[1fr_340px]">
+            <div class="p-6 lg:p-8">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">Booking #<span th:text="${booking.id}">1</span></p>
+                        <h1 class="mt-2 text-3xl font-black tracking-tight" th:text="${booking.propertyTitle}">Property title</h1>
+                        <p class="mt-2 text-text-gray" th:text="|${booking.propertyCity} · Hosted by ${booking.hostName}|">City</p>
+                    </div>
+                    <span class="inline-flex self-start rounded-full px-4 py-2 text-sm font-black"
+                          th:classappend="${booking.status.name() == 'CONFIRMED'} ? ' bg-green-100 text-green-700' : (${booking.status.name() == 'PENDING'} ? ' bg-amber-100 text-amber-800' : (${booking.status.name() == 'CANCELLED' || booking.status.name() == 'REJECTED'} ? ' bg-red-100 text-red-700' : ' bg-slate-100 text-slate-700'))"
+                          th:text="${booking.status}">PENDING</span>
+                </div>
+
+                <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Check-in</p>
+                        <p class="mt-2 font-black" th:text="${booking.checkInDate}">2026-09-20</p>
+                    </div>
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Check-out</p>
+                        <p class="mt-2 font-black" th:text="${booking.checkOutDate}">2026-09-23</p>
+                    </div>
+                    <div class="rounded-3xl border border-border p-4">
+                        <p class="text-sm font-bold text-text-gray">Guests</p>
+                        <p class="mt-2 font-black" th:text="${booking.guests}">2</p>
+                    </div>
+                </div>
+
+                <section class="mt-8 rounded-3xl border border-border p-5">
+                    <h2 class="text-xl font-black">Guest details</h2>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <p class="text-sm font-bold text-text-gray">Name</p>
+                            <p class="mt-1 font-semibold" th:text="${booking.guestName}">Guest</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-text-gray">Email</p>
+                            <p class="mt-1 font-semibold" th:text="${booking.guestEmail}">guest@example.com</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-8 rounded-3xl bg-bg-light p-5">
+                    <h2 class="text-xl font-black">Payment</h2>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <p class="text-sm font-bold text-text-gray">Method</p>
+                            <p class="mt-1 font-semibold" th:text="${booking.paymentMethod != null ? booking.paymentMethod : 'N/A'}">MOCK</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-text-gray">Status</p>
+                            <p class="mt-1 font-semibold" th:text="${booking.paymentStatus != null ? booking.paymentStatus : 'N/A'}">SUCCESS</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-text-gray">Transaction</p>
+                            <p class="mt-1 truncate font-semibold" th:text="${booking.transactionId != null ? booking.transactionId : 'N/A'}">MOCK</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="border-t border-border bg-bg-light p-6 lg:border-l lg:border-t-0 lg:p-8">
+                <h2 class="text-xl font-black">Price summary</h2>
+                <div class="mt-5 space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="text-text-gray" th:text="|${#numbers.formatDecimal(booking.nightlyPrice, 0, 'COMMA', 0, 'POINT')} x ${booking.nights} nights|">Nightly</span><strong th:text="${#numbers.formatDecimal(booking.subtotal, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="flex justify-between"><span class="text-text-gray">Cleaning fee</span><strong th:text="${#numbers.formatDecimal(booking.cleaningFee, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="flex justify-between"><span class="text-text-gray">Service fee</span><strong th:text="${#numbers.formatDecimal(booking.serviceFee, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    <div class="border-t border-border pt-3">
+                        <div class="flex justify-between text-lg"><span class="font-black">Total</span><strong th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT')}">0</strong></div>
+                    </div>
+                </div>
+
+                <div class="mt-8 space-y-3">
+                    <form th:if="${viewer == 'guest' and (booking.status.name() == 'PENDING' or booking.status.name() == 'CONFIRMED')}" th:action="@{/bookings/{id}/cancel(id=${booking.id})}" method="post">
+                        <button class="w-full rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700" onclick="return confirm('Cancel this booking?')">Cancel booking</button>
+                    </form>
+                    <div th:if="${viewer == 'host' and booking.status.name() == 'PENDING'}" class="grid gap-3">
+                        <form th:action="@{/host/bookings/{id}/accept(id=${booking.id})}" method="post">
+                            <button class="w-full rounded-2xl bg-success-500 px-5 py-3 font-bold text-white hover:bg-green-600">Accept request</button>
+                        </form>
+                        <form th:action="@{/host/bookings/{id}/reject(id=${booking.id})}" method="post">
+                            <button class="w-full rounded-2xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700">Reject request</button>
+                        </form>
+                    </div>
+                    <a th:href="@{/properties/{id}(id=${booking.propertyId})}" class="block rounded-2xl border border-text-900 px-5 py-3 text-center font-bold hover:bg-text-900 hover:text-white">View property</a>
+                </div>
+            </aside>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

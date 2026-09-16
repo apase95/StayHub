@@ -2,10 +2,12 @@ package com.stayhub.booking;
 
 import com.stayhub.auth.UserPrincipal;
 import com.stayhub.booking.dto.BookingCreateRequest;
+import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
 import com.stayhub.property.PropertyService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -75,6 +77,48 @@ public class BookingController {
         return "booking/payment";
     }
 
+    @GetMapping("/bookings")
+    public String showMyBookings(@AuthenticationPrincipal UserPrincipal principal,
+                                 @RequestParam(defaultValue = "upcoming") String tab,
+                                 Model model) {
+        List<BookingResponse> bookings = bookingService.getGuestBookings(principal.getId());
+        model.addAttribute("tab", tab);
+        model.addAttribute("allBookings", bookings);
+        model.addAttribute("bookings", filterBookings(bookings, tab));
+        model.addAttribute("upcomingCount", filterBookings(bookings, "upcoming").size());
+        model.addAttribute("pendingCount", filterBookings(bookings, "pending").size());
+        model.addAttribute("completedCount", filterBookings(bookings, "completed").size());
+        model.addAttribute("cancelledCount", filterBookings(bookings, "cancelled").size());
+        return "booking/my-bookings";
+    }
+
+    @GetMapping("/bookings/{id}")
+    public String showBookingDetail(@PathVariable Long id,
+                                    @AuthenticationPrincipal UserPrincipal principal,
+                                    Model model) {
+        model.addAttribute("booking", bookingService.getBookingForGuest(principal.getId(), id));
+        model.addAttribute("viewer", "guest");
+        return "booking/booking-detail";
+    }
+
+    @PostMapping("/bookings/{id}/cancel")
+    public String cancelBooking(@PathVariable Long id,
+                                @AuthenticationPrincipal UserPrincipal principal,
+                                RedirectAttributes redirectAttributes) {
+        bookingService.cancelBooking(principal.getId(), id);
+        redirectAttributes.addFlashAttribute("message", "Booking cancelled successfully.");
+        return "redirect:/bookings/" + id;
+    }
+
+    @GetMapping("/host/bookings/{id}")
+    public String showHostBookingDetail(@PathVariable Long id,
+                                        @AuthenticationPrincipal UserPrincipal principal,
+                                        Model model) {
+        model.addAttribute("booking", bookingService.getBookingForHost(principal.getId(), id));
+        model.addAttribute("viewer", "host");
+        return "booking/booking-detail";
+    }
+
     private void addBookingPageModel(Model model, BookingCreateRequest request, UserPrincipal principal, String errorMessage) {
         model.addAttribute("bookingRequest", request);
         model.addAttribute("property", propertyService.getPublicProperty(request.getPropertyId()));
@@ -86,5 +130,22 @@ public class BookingController {
         } catch (BusinessException exception) {
             model.addAttribute("quoteError", exception.getMessage());
         }
+    }
+
+    private List<BookingResponse> filterBookings(List<BookingResponse> bookings, String tab) {
+        return switch (tab) {
+            case "pending" -> bookings.stream()
+                    .filter(booking -> booking.getStatus() == BookingStatus.PENDING)
+                    .toList();
+            case "completed" -> bookings.stream()
+                    .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
+                    .toList();
+            case "cancelled" -> bookings.stream()
+                    .filter(booking -> booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.REJECTED)
+                    .toList();
+            default -> bookings.stream()
+                    .filter(booking -> booking.getStatus() == BookingStatus.CONFIRMED)
+                    .toList();
+        };
     }
 }

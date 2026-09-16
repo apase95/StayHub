@@ -1,6 +1,8 @@
 package com.stayhub.booking.dto;
 
 import com.stayhub.booking.BookingStatus;
+import com.stayhub.payment.PaymentMethod;
+import com.stayhub.payment.PaymentStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -34,6 +36,10 @@ public class BookingResponse {
     private BigDecimal serviceFee;
     private BigDecimal totalPrice;
     private BookingStatus status;
+    private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
+    private String transactionId;
+    private Instant paidAt;
     private Instant createdAt;
     private Instant updatedAt;
     private Instant cancelledAt;
