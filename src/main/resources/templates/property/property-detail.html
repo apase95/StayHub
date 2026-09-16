@@ -58,11 +58,13 @@
 
             <section class="border-b border-border py-8">
                 <h2 class="text-xl font-black">Availability</h2>
-                <div class="mt-5 grid gap-3 rounded-3xl bg-bg-light p-5 sm:grid-cols-2">
-                    <label><span class="text-sm font-bold text-text-gray">Check-in</span><input type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3"></label>
-                    <label><span class="text-sm font-bold text-text-gray">Check-out</span><input type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3"></label>
-                </div>
-                <p class="mt-3 text-sm text-text-gray">Live availability will connect to the Booking track when it is ready.</p>
+                <form th:action="@{/properties/{id}/book(id=${property.id})}" method="get" class="mt-5 grid gap-3 rounded-3xl bg-bg-light p-5 sm:grid-cols-[1fr_1fr_0.7fr_auto] sm:items-end">
+                    <label><span class="text-sm font-bold text-text-gray">Check-in</span><input name="checkInDate" type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3"></label>
+                    <label><span class="text-sm font-bold text-text-gray">Check-out</span><input name="checkOutDate" type="date" class="mt-2 w-full rounded-2xl border border-border px-4 py-3"></label>
+                    <label><span class="text-sm font-bold text-text-gray">Guests</span><input name="guests" type="number" min="1" th:max="${property.maxGuests}" value="1" class="mt-2 w-full rounded-2xl border border-border px-4 py-3"></label>
+                    <button class="rounded-2xl bg-text-900 px-5 py-3 font-bold text-white hover:bg-black">Check</button>
+                </form>
+                <p class="mt-3 text-sm text-text-gray">Availability is checked again before payment to prevent duplicate bookings.</p>
             </section>
 
             <section class="py-8">
@@ -82,7 +84,7 @@
                     <div class="flex justify-between"><span class="text-text-gray">Service fee</span><strong>Calculated at checkout</strong></div>
                 </div>
                 <a th:href="@{/properties/{id}/book(id=${property.id})}" class="mt-5 block rounded-2xl bg-primary-500 px-5 py-4 text-center font-bold text-white hover:bg-primary-600">Reserve</a>
-                <p class="mt-3 text-center text-xs text-text-gray">Booking endpoint arrives with Track C.</p>
+                <p class="mt-3 text-center text-xs text-text-gray">You will review dates and price before payment.</p>
             </div>
         </aside>
     </div>
