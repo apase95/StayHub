@@ -28,8 +28,8 @@ Là người dùng phổ thông nhất, có thể:
 Là Guest đã đăng ký thêm vai trò cho thuê, có thể:
 - Đăng tin chỗ ở mới: tiêu đề, mô tả, địa chỉ, giá/đêm, số khách tối đa, số phòng ngủ/giường/phòng tắm, loại hình (căn hộ/villa/khách sạn/homestay/resort), hình ảnh, tiện nghi.
 - Quản lý danh sách chỗ ở của mình.
-- Nhận và xử lý **yêu cầu đặt phòng** từ Guest: chấp nhận hoặc từ chối.
-- Theo dõi doanh thu, số lượng booking đang chờ/đã xác nhận.
+- Theo dõi doanh thu, booking đã thanh toán/đã xác nhận.
+- Xử lý booking request thủ công là hướng mở rộng nếu sau này cần Host duyệt trước hoặc sau thanh toán.
 
 ### 2.3. Admin (Quản trị hệ thống)
 Là đội ngũ vận hành nền tảng, có thể:
@@ -48,24 +48,21 @@ Là đội ngũ vận hành nền tảng, có thể:
 2. **Tìm kiếm** — nhập địa điểm, ngày nhận phòng, ngày trả phòng, số khách.
 3. **Xem kết quả tìm kiếm** — danh sách các chỗ ở phù hợp, có thể lọc (giá, loại hình, số phòng ngủ, tiện nghi, đánh giá) và sắp xếp (giá tăng/giảm, đánh giá cao nhất), có phân trang.
 4. **Xem chi tiết chỗ ở** — ảnh gallery, thông tin cơ bản, mô tả, danh sách tiện nghi, đánh giá từ khách trước, và **kiểm tra tình trạng trống theo ngày** (hệ thống sẽ từ chối nếu khoảng ngày Guest chọn bị trùng với một booking đã được xác nhận trước đó).
-5. **Bấm "Đặt phòng"** → chuyển sang trang đặt phòng, điền/xác nhận thông tin khách, xem bảng tổng hợp giá (giá phòng × số đêm + phí dọn dẹp + phí dịch vụ nền tảng = Tổng cộng).
-6. **Xác nhận & thanh toán** — hệ thống xử lý thanh toán (ở bản MVP là mô phỏng, trạng thái luôn trả về SUCCESS ngay lập tức).
-7. **Booking được tạo với trạng thái PENDING** — nghĩa là đã thanh toán thành công nhưng đang **chờ Host xác nhận**.
-8. **Host xem yêu cầu và quyết định:**
-   - Nếu **Host chấp nhận (Accept)** → booking chuyển sang **CONFIRMED**, Guest nhận thông báo qua email.
-   - Nếu **Host từ chối (Reject)** → booking chuyển sang **REJECTED**.
-9. **Guest có thể huỷ booking** ở trạng thái PENDING hoặc CONFIRMED → booking chuyển sang **CANCELLED**.
+5. **Bấm "Đặt phòng"** → chuyển sang trang đặt phòng, điền/xác nhận thông tin khách, nhập mã giảm giá nếu có, xem bảng tổng hợp giá.
+6. **Xác nhận & thanh toán qua VNPay** — backend tạo booking `PENDING_PAYMENT`, payment `PENDING`, rồi redirect Guest sang VNPay checkout.
+7. **VNPay xác nhận thanh toán qua IPN** — backend verify chữ ký và số tiền trước khi cập nhật dữ liệu.
+8. **Booking chuyển sang CONFIRMED** nếu payment success hợp lệ; Guest nhận email xác nhận và trang kết quả tự chuyển về My Bookings.
+9. **Guest có thể huỷ booking** ở trạng thái CONFIRMED theo rule hệ thống → booking chuyển sang **CANCELLED**.
 10. Sau ngày trả phòng thực tế, booking đã CONFIRMED sẽ được đánh dấu **COMPLETED**.
 11. Khi booking đã COMPLETED, Guest có thể **viết đánh giá (Review)** cho chỗ ở đó — đánh giá này sẽ hiển thị công khai ở trang chi tiết chỗ ở, góp phần vào điểm rating trung bình.
 
 Toàn bộ vòng đời trạng thái của một booking có thể tóm tắt như sau:
 
 ```
-PENDING ──(Host Accept)──► CONFIRMED ──(đến ngày trả phòng)──► COMPLETED ──► có thể REVIEW
-   │                            │
-   └──(Host Reject)──► REJECTED │
-   │                            │
-   └────────(Guest Cancel)──────┘──► CANCELLED
+PENDING_PAYMENT ──(VNPay Success + verified IPN)──► CONFIRMED ──(đến ngày trả phòng)──► COMPLETED ──► REVIEW
+       │                                                 │
+       └──(VNPay failed/cancelled/expired)──► CANCELLED  │
+                                                         └──(Guest Cancel)──► CANCELLED
 ```
 
 ## 4. Mô hình kinh doanh & dòng tiền
@@ -77,36 +74,39 @@ StayHub vận hành theo mô hình **thu phí hoa hồng trên mỗi giao dịch
 | **Giá phòng × số đêm** | Doanh thu chính của Host | Host |
 | **Phí dọn dẹp (Cleaning fee)** | Chi phí cố định Host đặt ra cho mỗi lượt khách | Host |
 | **Phí dịch vụ StayHub (Service fee)** | Phí nền tảng thu trên mỗi giao dịch thành công | StayHub |
+| **Mã giảm giá (Discount)** | Khoản giảm trừ theo campaign/promo code | StayHub/marketing budget |
 
-→ **Tổng tiền Guest trả = (Giá phòng × số đêm) + Phí dọn dẹp + Phí dịch vụ.**
+→ **Tổng tiền Guest trả = (Giá phòng × số đêm) + Phí dọn dẹp + Phí dịch vụ - Giảm giá.**
 
 ## 5. Ba mảng nghiệp vụ cốt lõi
 
 ### 5.1. Property & Search (Chỗ ở & Tìm kiếm)
 Đây là "kho hàng" của nền tảng. Mỗi **Property** (chỗ ở) thuộc về một Host, có các thông tin: loại hình, địa chỉ/thành phố, giá/đêm, sức chứa, số phòng ngủ/giường/phòng tắm, mô tả, danh sách ảnh, danh sách tiện nghi (Wi-Fi, hồ bơi, bãi đỗ xe, điều hoà, bếp, máy giặt, TV...).
 
-Nghiệp vụ tìm kiếm cho phép Guest lọc theo nhiều tiêu chí cùng lúc (khoảng giá, loại hình, số phòng ngủ, tiện nghi, đánh giá tối thiểu) và sắp xếp kết quả — đây là phần phức tạp nhất về mặt truy vấn dữ liệu vì phải kết hợp điều kiện lọc **với** điều kiện chỗ ở phải **còn trống** trong khoảng ngày Guest chọn (không được trùng với booking nào đã CONFIRMED hoặc đang PENDING chờ xử lý).
+Nghiệp vụ tìm kiếm cho phép Guest lọc theo nhiều tiêu chí cùng lúc (khoảng giá, loại hình, số phòng ngủ, tiện nghi, đánh giá tối thiểu) và sắp xếp kết quả — đây là phần phức tạp nhất về mặt truy vấn dữ liệu vì phải kết hợp điều kiện lọc **với** điều kiện chỗ ở phải **còn trống** trong khoảng ngày Guest chọn (không được trùng với booking nào đã CONFIRMED hoặc đang PENDING_PAYMENT chờ thanh toán/xác minh).
 
 ### 5.2. Booking & Payment (Đặt phòng & Thanh toán)
 Hai quy tắc quan trọng nhất:
 
-- **Kiểm tra trùng lịch:** Trước khi cho phép tạo booking, hệ thống bắt buộc phải kiểm tra khoảng ngày [check-in, check-out] mà Guest chọn không được giao nhau với bất kỳ booking nào của cùng property đang ở trạng thái PENDING hoặc CONFIRMED. Nếu trùng, hệ thống từ chối và báo lỗi rõ ràng cho Guest biết (mã lỗi `ERR_ROOM_NOT_AVAILABLE`).
-- **Tính giá:** Tổng tiền booking = (giá/đêm × số đêm) + phí dọn dẹp + phí dịch vụ. Logic này được tách riêng thành một service chuyên trách để dễ kiểm thử và thay đổi công thức tính giá sau này (ví dụ thêm giảm giá theo số đêm dài hạn, phụ phí cuối tuần...).
+- **Kiểm tra trùng lịch:** Trước khi cho phép tạo booking, hệ thống bắt buộc phải kiểm tra khoảng ngày [check-in, check-out] mà Guest chọn không được giao nhau với bất kỳ booking nào của cùng property đang ở trạng thái PENDING_PAYMENT hoặc CONFIRMED. Nếu trùng, hệ thống từ chối và báo lỗi rõ ràng cho Guest biết (mã lỗi `ERR_ROOM_NOT_AVAILABLE`).
+- **Tính giá:** Tổng tiền booking = (giá/đêm × số đêm) + phí dọn dẹp + phí dịch vụ - discount. Logic này được tách riêng thành service chuyên trách để dễ kiểm thử và thay đổi công thức tính giá sau này.
+- **Discount:** Mã giảm giá chỉ được dùng để preview trên FE. Khi Guest submit booking, backend phải tính lại subtotal, validate lại code, snapshot `discount_amount`, và chỉ tăng `used_count` sau khi VNPay xác nhận payment success.
 
-Thanh toán (Payment) là một domain con nằm cạnh Booking, ghi nhận: số tiền, phương thức thanh toán, trạng thái, thời điểm thanh toán. Ở bản MVP dùng "Mock Payment" — tự động trả kết quả thành công — nhưng thiết kế theo interface để sau này có thể thay bằng cổng thanh toán thật (VNPay/Momo) mà không phải sửa lại toàn bộ luồng Booking.
+Thanh toán (Payment) là một domain con nằm cạnh Booking, ghi nhận: số tiền, phương thức thanh toán, trạng thái, thời điểm thanh toán và mã giao dịch từ VNPay. Với VNPay, `returnUrl` chỉ phục vụ trải nghiệm người dùng; IPN/webhook có verify checksum và amount mới là nguồn xác nhận chính để chuyển payment sang `SUCCESS` và booking sang `CONFIRMED`.
 
 ### 5.3. Review & Notification (Đánh giá & Thông báo)
 - **Review** chỉ được phép tạo khi booking đã ở trạng thái COMPLETED — đảm bảo chỉ khách đã thực sự lưu trú mới có quyền đánh giá, tránh đánh giá ảo. Review gắn với booking cụ thể, có điểm số (rating) và bình luận, hiển thị lại trên trang chi tiết property.
-- **Notification** được gửi tự động mỗi khi trạng thái booking thay đổi quan trọng: được Host xác nhận (CONFIRMED), bị từ chối (REJECTED), hoặc bị huỷ (CANCELLED) — giúp Guest và Host luôn nắm được tình trạng đặt phòng mà không cần chủ động vào lại hệ thống kiểm tra.
+- **Notification** được gửi tự động mỗi khi trạng thái booking thay đổi quan trọng: thanh toán thành công và booking được xác nhận (CONFIRMED), hoặc booking bị huỷ (CANCELLED) — giúp Guest nắm được tình trạng đặt phòng mà không cần chủ động vào lại hệ thống kiểm tra.
 
 
 ## 6. Vai trò của Host trong vận hành
 
-Host không chỉ là người đăng tin mà còn là **người ra quyết định cuối cùng** cho mỗi booking. Điều này có nghĩa:
+Trong VNPay MVP, Host chủ yếu vận hành listing và theo dõi booking đã xác nhận. Việc Host duyệt thủ công có thể được bật lại sau nếu nghiệp vụ yêu cầu kiểm soát chặt hơn.
 
-- Mỗi booking mới luôn bắt đầu ở trạng thái **PENDING**, dù Guest đã thanh toán thành công.
-- Host có trách nhiệm xem và phản hồi các yêu cầu này trong Host Dashboard — nơi hiển thị danh sách property của Host và danh sách booking request kèm theo tên khách, ngày ở, số tiền.
-- Nếu Host không phản hồi, booking vẫn ở trạng thái PENDING.
+- Booking mới bắt đầu ở trạng thái **PENDING_PAYMENT** trong lúc chờ VNPay xác nhận.
+- Sau IPN success hợp lệ, booking chuyển thẳng sang **CONFIRMED**.
+- Host Dashboard vẫn hiển thị booking theo property để Host theo dõi lịch đặt và doanh thu.
+- Nếu sau này khôi phục Host approval, trạng thái đề xuất là `PENDING_HOST_CONFIRMATION` sau payment success.
 
 ## 7. Vai trò của Admin trong vận hành
 
@@ -125,8 +125,9 @@ Admin đóng vai trò giám sát toàn hệ thống chứ không tham gia trực
 
 ## 9. Vì sao thiết kế theo hướng này? (Lý do nghiệp vụ)
 
-- **Host duyệt thủ công (Manual Accept/Reject)** thay vì tự động xác nhận: giúp mô hình MVP đơn giản hơn về mặt kỹ thuật (không cần xử lý real-time lock chỗ trống phức tạp), đồng thời phản ánh đúng hành vi thực tế của nhiều nền tảng lưu trú nhỏ tại Việt Nam, nơi Host thường muốn xem qua thông tin khách trước khi nhận.
-- **Mock Payment trước, thanh toán thật sau:** cho phép đội dev tập trung hoàn thiện toàn bộ luồng nghiệp vụ (search, booking, trạng thái, review, notification) trước, tách rủi ro tích hợp cổng thanh toán thật (vốn tốn thời gian xử lý webhook, đối soát, bảo mật) sang giai đoạn sau — đúng tinh thần MVP.
+- **VNPay trước cho thanh toán VND:** giúp flow demo sát thực tế người dùng Việt Nam hơn, hỗ trợ bank/card/QR và có IPN để xác minh giao dịch.
+- **Tự xác nhận sau payment success:** giảm friction cho Guest; booking chỉ được CONFIRMED khi backend đã verify checksum và amount từ VNPay.
+- **Discount snapshot:** giúp audit rõ ràng số tiền trước/sau giảm giá, đồng thời tránh lệ thuộc vào campaign có thể thay đổi sau này.
 - **Service fee cố định hiển thị minh bạch tại bước thanh toán:** giúp Guest hiểu rõ tiền của mình đi đâu, đồng thời đây là cách đơn giản nhất để mô hình hoá doanh thu nền tảng mà không cần hệ thống tính hoa hồng phức tạp theo tỷ lệ % biến động.
 - **Review gắn chặt với Booking đã COMPLETED:** đảm bảo tính xác thực của đánh giá — quy tắc này là chuẩn ngành (Airbnb, Booking.com đều áp dụng) để tránh review giả mạo làm sai lệch uy tín Host.
 
@@ -134,9 +135,10 @@ Admin đóng vai trò giám sát toàn hệ thống chứ không tham gia trực
 
 Sau khi project hoạt động ổn định, một số hướng phát triển thêm về mặt nghiệp vụ:
 
-- **Thanh toán thật (VNPay/Momo):** thay thế Mock Payment, mở khoá khả năng thu tiền thật, cần thêm nghiệp vụ đối soát và hoàn tiền (refund) khi Host reject hoặc Guest huỷ.
+- **Refund/void payment:** hoàn tiền khi Guest huỷ hoặc khi phát sinh tranh chấp.
+- **MoMo/ZaloPay:** thêm provider khác sau khi abstraction VNPay ổn định.
 - **Wishlist:** cho Guest lưu lại chỗ ở yêu thích để quay lại đặt sau, tăng tỷ lệ chuyển đổi (conversion).
-- **Tự động huỷ booking PENDING quá hạn:** nếu Host không phản hồi trong X giờ, hệ thống tự huỷ và hoàn tiền, tránh Guest chờ đợi vô thời hạn.
+- **Tự động huỷ booking PENDING_PAYMENT quá hạn:** nếu Guest không thanh toán trong X phút hoặc VNPay không xác nhận, hệ thống tự huỷ để trả lại availability.
 - **Rating trung bình được cache** thay vì tính lại mỗi lần load trang, phục vụ khi lượng review lớn.
 - **Báo cáo xuất file (CSV/PDF) cho Admin:** phục vụ nhu cầu báo cáo định kỳ, đối soát doanh thu với Host.
 - **Thông báo real-time (WebSocket):** thay vì chỉ gửi email, giúp Host/Guest nhận cập nhật trạng thái tức thời ngay trên giao diện.

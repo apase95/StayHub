@@ -99,6 +99,10 @@ StayHub/
 - [x] **TSK-056** `[BE_User]` Chuẩn hóa email, xử lý duplicate race, thêm `V2__normalize_user_emails.sql` và DTO boundary cho Admin view.
 - [x] **TSK-057** `[BE_Config]` Bootstrap Admin opt-in bằng environment variables, không tự nâng quyền account tồn tại.
 - [x] **TSK-058** `[BE_Core]` Tách exception handling cho REST API và Thymeleaf MVC.
+- [x] **TSK-059** `[BE_Auth]` Bổ sung đăng ký bằng OTP email, username unique, verify-registration page, và HTML email template có fallback text.
+- [x] **TSK-060** `[BE_Auth]` Tích hợp Google OAuth2 login, tự provision user `GOOGLE`, sửa principal để booking flow dùng được OAuth account.
+- [x] **TSK-061** `[BE_Notification]` Bật Gmail SMTP qua `.env`, gửi booking status email HTML khi Host accept/reject hoặc Guest cancel.
+- [x] **TSK-062** `[Docs/API]` Rà soát endpoint backend với template/frontend; ghi chú endpoint alias/future/external API trong docs.
 
 ---
 
@@ -164,13 +168,47 @@ StayHub/
 
 # INTEGRATION & DEPLOY
 
-- [ ] **TSK-049** `[Testing]` Test end-to-end theo `flow.md`: Search → Property Detail → Check Availability → Booking → Mock Payment → PENDING → Host Accept → CONFIRMED → My Bookings → Review. *(Estimate: 2h · Priority: Urgent)*
+- [ ] **TSK-049** `[Testing]` Test end-to-end flow hiện tại: Search → Property Detail → Check Availability → Booking → Mock Payment → PENDING → Host Accept → CONFIRMED → My Bookings → Review. *(Estimate: 2h · Priority: Urgent)*
 
 - [ ] **TSK-050** `[Infra]` Verify `docker compose up -d --build` chạy full stack (app + db) không lỗi, dùng `application-docker.yml`. *(Estimate: 1.5h · Priority: High)*
 
 - [ ] **TSK-051** `[Testing]` Review chéo giữa 3 track: kiểm tra không có entity nào bị trả trực tiếp ra view/API (đúng `rules.md` mục 5), không có `catch (Exception e) {}` rỗng. *(Estimate: 1.5h · Priority: High)*
 
 - [ ] **TSK-052** `[Docs]` Cập nhật README + screenshots, đánh dấu lại task đã hoàn thành trong `task-list.md`. *(Estimate: 1h · Priority: Medium)*
+
+## NEXT FEATURE — DISCOUNT · VNPAY PAYMENT
+
+- [x] **TSK-063** `[Docs]` Hoàn thiện thiết kế Discount + VNPay pipeline trong API/database/system diagrams trước khi implement. *(Estimate: 1h · Priority: High)*
+
+- [ ] **TSK-064** `[DB_Discount]` Thêm migration `discount_codes`: code unique, type `PERCENT/FIXED`, value, cap, minimum amount, time window, usage limits, active flag. *(Estimate: 1h · Priority: High)*
+
+- [ ] **TSK-065** `[DB_Booking]` Mở rộng `bookings`: `subtotal_price`, `discount_code_id`, `discount_amount`, trạng thái `PENDING_PAYMENT`, và đảm bảo `total_price` là tổng sau discount. *(Estimate: 1h · Priority: High)*
+
+- [ ] **TSK-066** `[DB_Payment]` Mở rộng `payments`: provider `VNPAY`, currency `VND`, `provider_txn_ref`, `provider_transaction_no`, `raw_response`, trạng thái `PENDING/SUCCESS/FAILED/CANCELLED/EXPIRED`. *(Estimate: 1h · Priority: High)*
+
+- [ ] **TSK-067** `[BE_Discount]` Implement `DiscountCode`, repository, service validate/apply; backend tự tính lại giá, không tin discount amount từ frontend. *(Estimate: 2h · Priority: High)*
+
+- [ ] **TSK-068** `[API_Discount]` Thêm `POST /api/v1/discounts/validate` để preview discount trên booking page. *(Estimate: 1h · Priority: Medium)*
+
+- [ ] **TSK-069** `[BE_Payment]` Thêm VNPay config properties từ `.env`: `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_PAY_URL`, `VNPAY_RETURN_URL`, `VNPAY_IPN_URL`. *(Estimate: 1h · Priority: High)*
+
+- [ ] **TSK-070** `[BE_Payment]` Implement VNPay URL builder và secure-hash verifier theo sorted params + HMAC SHA512. *(Estimate: 2h · Priority: High)*
+
+- [ ] **TSK-071** `[BE_Booking]` Refactor `POST /bookings`: tạo booking `PENDING_PAYMENT`, payment `PENDING`, apply discount snapshot, redirect sang VNPay checkout URL. *(Estimate: 2.5h · Priority: High)*
+
+- [ ] **TSK-072** `[BE_Payment]` Implement `GET /api/v1/payments/vnpay/ipn`: verify checksum/amount, idempotent update payment success/failure, booking `CONFIRMED/CANCELLED`, tăng discount usage sau success. *(Estimate: 3h · Priority: High)*
+
+- [ ] **TSK-073** `[FE_Payment]` Thêm `GET /payments/vnpay/return` + template result page: hiển thị đang xác minh, polling status, redirect `/my-bookings`. *(Estimate: 2h · Priority: Medium)*
+
+- [ ] **TSK-074** `[API_Payment]` Thêm `GET /api/v1/payments/bookings/{bookingId}/status` cho payment result polling. *(Estimate: 1h · Priority: Medium)*
+
+- [ ] **TSK-075** `[FE_Booking]` Cập nhật booking page: promo code input, apply button, discount line, nút `Pay with VNPay`, hiển thị VND. *(Estimate: 2h · Priority: Medium)*
+
+- [ ] **TSK-076** `[Notification]` Gửi email booking confirmed sau VNPay IPN success, không gửi dựa trên return URL. *(Estimate: 1h · Priority: Medium)*
+
+- [ ] **TSK-077** `[Testing]` Unit/integration tests cho discount valid/expired/usage limit, VNPay signature, IPN success duplicate, wrong amount, invalid checksum. *(Estimate: 3h · Priority: High)*
+
+- [ ] **TSK-078** `[Docs]` Sau implement, cập nhật `.env.example`, API docs, DB docs, screenshots/README nếu có thay đổi UI. *(Estimate: 1h · Priority: Medium)*
 
 ---
 
@@ -180,12 +218,13 @@ StayHub/
 - [ ] Đăng ký / đăng nhập / phân quyền GUEST-HOST-ADMIN hoạt động (`SecurityConfig`).
 - [ ] Search property theo địa điểm + ngày + số khách, có filter/sort/pagination.
 - [ ] Xem property detail, check availability theo ngày trước khi đặt.
-- [ ] Đặt phòng → mock payment SUCCESS → booking status PENDING.
+- [ ] Flow hiện tại: Đặt phòng → mock payment SUCCESS → booking status PENDING.
+- [ ] Flow mục tiêu VNPay: Đặt phòng → apply discount optional → VNPay payment SUCCESS → booking status CONFIRMED → redirect My Bookings.
 - [ ] Host xem được booking request, accept/reject.
 - [ ] User xem My Bookings, cancel được booking.
 - [ ] Sau COMPLETED, user viết được review, hiển thị trên property detail.
 - [ ] Admin xem được dashboard tổng quan + danh sách booking toàn hệ thống.
-- [ ] Nhận được email khi booking đổi trạng thái.
+- [x] Nhận được email OTP khi đăng ký và email khi booking đổi trạng thái.
 - [ ] `docker compose up -d --build` chạy được toàn bộ stack.
 
 ---

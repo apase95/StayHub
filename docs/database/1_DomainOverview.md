@@ -4,6 +4,7 @@ flowchart TB
     P[Property Management]
     B[Booking]
     PAY[Payment]
+    D[Discount]
     R[Review]
     S[Search & Availability]
     N[Notification]
@@ -12,6 +13,7 @@ flowchart TB
     U --> B
     P --> S
     P --> B
+    D --> B
     B --> PAY
     B --> R
     U --> R
@@ -26,5 +28,6 @@ flowchart TB
 - A **Property** has many **Amenities** through `property_amenities`.
 - A **Guest** can create multiple **Bookings**.
 - A **Property** can receive multiple **Bookings** over time.
-- A **Booking** has one payment record in the MVP.
+- A **Booking** can optionally apply one **DiscountCode** and stores discount snapshots.
+- A **Booking** has one payment record in the MVP/VNPay flow.
 - A completed **Booking** can have at most one **Review**.

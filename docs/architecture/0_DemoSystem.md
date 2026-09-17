@@ -39,16 +39,17 @@ Booking Information
         ├── Guest information
         ├── Check-in / Check-out
         ├── Number of guests
+        ├── Discount code
         └── Price summary
         │
         ▼
-"Payment"
+VNPay Payment
         │
         ▼
-Create Booking
+VNPay IPN verifies payment
         │
         ▼
-Admin / Host Confirmation
+Create/Confirm Booking
         │
         ▼
 Booking Confirmed
@@ -235,23 +236,25 @@ Book -> Login/Register
     │                                             │
     │ ─────────────────────────────────────────── │
     │                                             │
-    │ $50 × 3 nights                    $150      │
-    │ Cleaning fee                       $20      │
-    │ Service fee                        $10      │
+    │ 1,000,000 VND × 3 nights    3,000,000 VND   │
+    │ Cleaning fee                   200,000 VND  │
+    │ Service fee                    150,000 VND  │
+    │ Discount code [ STAY10 ] [Apply]            │
+    │ Discount                      -150,000 VND  │
     │                                             │
-    │ Total                              $180     │
+    │ Total                         3,200,000 VND │
     │                                             │
-    │              [ Confirm & Pay ]              │
+    │              [ Pay with VNPay ]             │
     └─────────────────────────────────────────────┘
     ```
-- Flow mock payment:
+- Flow VNPay payment:
     - Payment:
     ```
-    Confirm & Pay -> Payment Processing -> Payment Success -> Create Booking
+    Pay with VNPay -> VNPay Checkout -> VNPay IPN -> Payment Success -> Booking CONFIRMED
     ```
     - Status payment:
     ```
-    Payment status = SUCCESS
+    Payment status = PENDING -> SUCCESS
     ```
     - Database:
     ```
@@ -266,8 +269,8 @@ Book -> Login/Register
     ```
     - Example:
     ```
-    payment_method = MOCK
-    status = SUCCESS
+    payment_method = VNPAY
+    status = PENDING/SUCCESS
     ```
     
 - Status Booking:
@@ -275,15 +278,9 @@ Book -> Login/Register
     ```
     User
      ↓
-    Create Booking
+    Create Booking PENDING_PAYMENT
      ↓
-    Payment Success
-     ↓
-    Booking = PENDING
-     ↓
-    Host
-     ↓
-    Confirm
+    VNPay Payment Success
      ↓
     Booking = CONFIRMED
      ↓
@@ -291,7 +288,7 @@ Book -> Login/Register
     ```
     - Booking status enum:
     ```
-    PENDING
+    PENDING_PAYMENT
     CONFIRMED
     CANCELLED
     REJECTED
@@ -299,12 +296,12 @@ Book -> Login/Register
     ```
     - User confirm:
     ```
-                  ┌───────────┐
-                  │  PENDING  │
-                  └─────┬─────┘
-                    ┌───┴───┐
-                    ↓       ↓
-              CONFIRMED   REJECTED
+             ┌───────────────────┐
+             │  PENDING_PAYMENT  │
+             └─────────┬─────────┘
+                    ┌──┴──┐
+                    ↓     ↓
+              CONFIRMED CANCELLED
                   │
                   ↓
               COMPLETED
@@ -314,21 +311,10 @@ Book -> Login/Register
     ```
     - Nếu user cancel:
     ```
-    PENDING ──────> CANCELLED
+    PENDING_PAYMENT ──────> CANCELLED
     CONFIRMED ────> CANCELLED
     ```
-    - Host confirm:
-    ```
-    PENDING
-       │
-       ├── Host accepts
-       │       ↓
-       │   CONFIRMED
-       │
-       └── Host rejects
-               ↓
-           REJECTED
-     ```
+    - Host confirm is skipped in the VNPay MVP flow. If restored later, add `PENDING_HOST_CONFIRMATION` after payment success.
      - Booking SUCCESSFULLY:
     ```
     My Bookings
@@ -365,7 +351,7 @@ Book -> Login/Register
     2
 
     Total:
-    $180
+    3,200,000 VND
 
     Payment:
     SUCCESS
@@ -404,18 +390,16 @@ Book -> Login/Register
                          Booking
                              │
                              ↓
-                    Mock Payment
+                    Apply Discount
+                         │
+                         ↓
+                    VNPay Payment
                              │
                              ↓
-                        PENDING
+                    IPN Verification
                              │
                              ↓
-                          HOST
-                       ┌─────┴─────┐
-                       ↓           ↓
-                    ACCEPT      REJECT
-                       ↓           ↓
-                   CONFIRMED    REJECTED
+                       CONFIRMED
                        │
                        ↓
                    CHECK-IN

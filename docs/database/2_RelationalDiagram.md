@@ -10,6 +10,7 @@ flowchart LR
 
     BOOKINGS[(bookings)]
     PAYMENTS[(payments)]
+    DISCOUNTS[(discount_codes)]
     REVIEWS[(reviews)]
 
     USERS -->|"1:N host_id"| PROPERTIES
@@ -20,6 +21,7 @@ flowchart LR
 
     USERS -->|"1:N guest_id"| BOOKINGS
     PROPERTIES -->|"1:N property_id"| BOOKINGS
+    DISCOUNTS -->|"1:N optional discount_code_id"| BOOKINGS
 
     BOOKINGS -->|"1:1 booking_id"| PAYMENTS
     BOOKINGS -->|"1:0..1 booking_id"| REVIEWS
