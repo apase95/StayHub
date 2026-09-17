@@ -25,6 +25,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(length = 50, unique = true)
+    private String username;
+
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
     
@@ -41,4 +44,12 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "login_provider", nullable = false, length = 20)
+    @Builder.Default
+    private UserLoginProvider loginProvider = UserLoginProvider.LOCAL;
+
+    @Column(name = "provider_id")
+    private String providerId;
 }

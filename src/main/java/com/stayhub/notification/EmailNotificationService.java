@@ -44,12 +44,21 @@ public class EmailNotificationService implements NotificationService {
         }
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress, systemName);
             helper.setTo(booking.getGuest().getEmail());
             helper.setSubject("StayHub booking " + booking.getStatus().name().toLowerCase());
-            helper.setText(buildBookingMessage(booking));
+            helper.setText(buildBookingMessage(booking), EmailTemplateRenderer.bookingStatusEmail(
+                    booking.getGuest().getFullName(),
+                    booking.getProperty().getTitle(),
+                    booking.getStatus().name(),
+                    booking.getCheckInDate(),
+                    booking.getCheckOutDate(),
+                    booking.getGuests(),
+                    booking.getTotalPrice()
+            ));
             mailSender.send(message);
+            log.info("Sent booking {} notification to {} for booking {}.", booking.getStatus(), booking.getGuest().getEmail(), booking.getId());
         } catch (MessagingException | UnsupportedEncodingException | RuntimeException exception) {
             log.warn("Unable to send booking status notification for booking {}", booking.getId(), exception);
         }

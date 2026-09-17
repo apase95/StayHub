@@ -3,6 +3,7 @@ package com.stayhub.config;
 import com.stayhub.auth.dto.RegisterRequest;
 import com.stayhub.user.EmailNormalizer;
 import com.stayhub.user.User;
+import com.stayhub.user.UserLoginProvider;
 import com.stayhub.user.UserRepository;
 import com.stayhub.user.UserRole;
 import com.stayhub.user.UserStatus;
@@ -32,7 +33,9 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(properties.getEmail());
         request.setPassword(properties.getPassword());
+        request.setConfirmPassword(properties.getPassword());
         request.setFullName(properties.getFullName());
+        request.setUsername("admin");
 
         Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request);
         if (!violations.isEmpty()) {
@@ -51,10 +54,12 @@ public class AdminBootstrapRunner implements ApplicationRunner {
 
         User admin = User.builder()
                 .email(email)
+                .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName().trim())
                 .role(UserRole.ADMIN)
                 .status(UserStatus.ACTIVE)
+                .loginProvider(UserLoginProvider.LOCAL)
                 .build();
 
         try {

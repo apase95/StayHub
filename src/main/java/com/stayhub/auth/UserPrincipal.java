@@ -6,22 +6,28 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 
 @Getter
 @AllArgsConstructor
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails, OAuth2User {
 
     private final Long id;
     private final String email;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
     private final UserStatus status;
-    
+     
     private final String fullName;
+
+    private final Map<String, Object> attributes;
+
+    private final String nameAttributeKey;
 
     
     public static UserPrincipal create(User user) {
@@ -33,7 +39,23 @@ public class UserPrincipal implements UserDetails {
                 user.getPasswordHash(),
                 Collections.singletonList(authority),
                 user.getStatus(),
-                user.getFullName()
+                user.getFullName(),
+                Map.of(),
+                "id"
+        );
+    }
+
+    public static UserPrincipal create(User user, Map<String, Object> attributes, String nameAttributeKey) {
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
+        return new UserPrincipal(
+                user.getId(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                Collections.singletonList(authority),
+                user.getStatus(),
+                user.getFullName(),
+                attributes,
+                nameAttributeKey
         );
     }
 
@@ -70,5 +92,11 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return status == UserStatus.ACTIVE;
+    }
+
+    @Override
+    public String getName() {
+        Object value = attributes.get(nameAttributeKey);
+        return value != null ? value.toString() : String.valueOf(id);
     }
 }

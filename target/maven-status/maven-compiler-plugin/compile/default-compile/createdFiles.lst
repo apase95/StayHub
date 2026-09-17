@@ -31,7 +31,6 @@ com/stayhub/common/exception/InvalidStateTransitionException.class
 com/stayhub/StayhubApplication.class
 com/stayhub/user/dto/UserResponse.class
 com/stayhub/admin/AdminController.class
-com/stayhub/auth/AuthController.class
 com/stayhub/auth/CustomUserDetailsService.class
 com/stayhub/home/HomeController.class
 com/stayhub/admin/AdminService.class
