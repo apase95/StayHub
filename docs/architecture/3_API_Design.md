@@ -46,8 +46,12 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 | :--- | :--- | :--- | :--- |
 | `GET` | `/login` | Trang đăng nhập | - |
 | `POST` | `/login` | Xử lý đăng nhập | `username`, `password` |
+| `GET` | `/oauth2/authorization/google` | Bắt đầu đăng nhập Google OAuth2 | Spring Security OAuth2 client |
+| `GET` | `/login/oauth2/code/google` | Callback Google OAuth2 | Google redirect URI |
 | `GET` | `/register` | Trang đăng ký | - |
-| `POST` | `/register` | Đăng ký tài khoản | `email`, `password`, `fullName`, ... |
+| `POST` | `/register` | Gửi OTP đăng ký qua email, chưa tạo user | `fullName`, `username`, `email`, `password`, `confirmPassword` |
+| `GET` | `/register/verify` | Trang nhập OTP đăng ký | Query: `email` |
+| `POST` | `/register/verify` | Xác thực OTP và tạo user `LOCAL` | `email`, `otp` |
 | `POST` | `/logout` | Đăng xuất | - |
 
 ### 4.2. Property & Search
@@ -55,6 +59,7 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 | Method | Endpoint | Mô tả | Yêu cầu |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/` | Trang chủ | - |
+| `GET` | `/home` | Alias trang chủ | - |
 | `GET` | `/properties` | Trang kết quả tìm kiếm | Query params: `location`, `checkIn`, `checkOut`, `guests`, `page`, `sort`... |
 | `GET` | `/properties/{id}` | Trang chi tiết property | Path: `id` |
 | `GET` | `/api/v1/properties` | API tìm kiếm trả về JSON | Tương tự query params + filter (price, type, amenities...) |
@@ -68,8 +73,24 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 | `POST` | `/bookings` | Tạo booking mới | Body: `propertyId`, `checkIn`, `checkOut`, `guests`, `guestInfo`... |
 | `GET` | `/my-bookings` | Trang danh sách booking của tôi | - |
 | `GET` | `/bookings/{id}` | Trang chi tiết booking | Path: `id` |
+| `GET` | `/bookings/{id}/payment` | Trang payment legacy/future scope | Flow VNPay mới dùng redirect checkout + return page |
 | `POST` | `/api/v1/bookings/check-availability` | Kiểm tra khả dụng (AJAX) | Body: `propertyId`, `checkIn`, `checkOut` |
 | `POST` | `/api/v1/bookings/{id}/cancel` | Hủy booking | Path: `id` |
+| `GET` | `/api/v1/payments/bookings/{bookingId}/status` | Poll trạng thái thanh toán/booking sau khi quay về từ VNPay | Path: `bookingId` |
+
+### 4.3.1. Discount
+
+| Method | Endpoint | Mô tả | Yêu cầu |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/discounts/validate` | Kiểm tra mã giảm giá và tính lại tổng tiền | `propertyId`, `checkIn`, `checkOut`, `guests`, `code` |
+
+### 4.3.2. VNPay payment
+
+| Method | Endpoint | Mô tả | Yêu cầu |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/bookings` | Tạo booking `PENDING_PAYMENT`, payment `PENDING`, rồi redirect sang VNPay | Form booking + optional `discountCode` |
+| `GET` | `/payments/vnpay/return` | Trang kết quả sau khi VNPay redirect về StayHub | VNPay query params + `vnp_SecureHash` |
+| `GET` | `/api/v1/payments/vnpay/ipn` | VNPay IPN/webhook xác nhận thanh toán | VNPay query params + `vnp_SecureHash` |
 
 ### 4.4. Host
 
@@ -110,7 +131,17 @@ Tất cả API response đều được bọc trong đối tượng `ApiResponse
 | `GET` | `/bookings/{id}/review` | Trang viết review | Path: `id` |
 | `POST` | `/reviews` | Gửi review | Body: `bookingId`, `rating`, `comment` |
 
-### 4.7. Payment (không có endpoint riêng cho thanh toán MVP, được xử lý trong booking)
+### 4.7. Payment pipeline
+
+Với tích hợp VNPay, `POST /bookings` vẫn là entrypoint chính của flow thanh toán. Backend tạo booking/payment ở trạng thái pending rồi redirect user sang VNPay, thay vì tạo mock payment success ngay lập tức.
+
+### 4.8. Endpoint coverage note
+
+- Các form/link Thymeleaf hiện cover flow chính: đăng ký OTP, đăng nhập local/Google, search, property detail, booking, my bookings, host dashboard, admin users/bookings.
+- Một số REST API không được gọi trực tiếp từ template vì dành cho AJAX, client ngoài, hoặc future SPA/mobile: `/api/v1/host/properties/**`, `GET /api/v1/properties/**`, `GET /api/v1/amenities`, và các API booking ngoài `check-availability`.
+- Menu `Help` và `Wishlists` trong navbar là placeholder Post-MVP, chưa có route backend tương ứng.
+- `/home` là alias của `/`; UI ưu tiên link `/`.
+- `/bookings/{id}/payment` còn template/controller legacy nhưng không nằm trong flow VNPay chính; flow mới dùng VNPay checkout redirect và `/payments/vnpay/return`.
 
 ## 5. Ví dụ request/response
 
@@ -163,10 +194,77 @@ propertyId=1&checkIn=2026-09-22&checkOut=2026-09-25&guests=2
 ```
 
 **Response (redirect đến trang booking detail hoặc my bookings):**
-- Nếu thành công, redirect `302` đến `/my-bookings`.
+- Với mock payment hiện tại: nếu thành công, redirect `302` đến `/bookings/{id}`.
+- Với VNPay: nếu tạo payment thành công, redirect `302` đến VNPay checkout URL.
 - Nếu thất bại, hiển thị lỗi.
 
-### 5.3. Host chấp nhận booking (AJAX)
+### 5.3. Validate discount
+
+**Request:**
+```json
+POST /api/v1/discounts/validate
+Content-Type: application/json
+
+{
+  "propertyId": 1,
+  "checkIn": "2026-09-22",
+  "checkOut": "2026-09-25",
+  "guests": 2,
+  "code": "STAY10"
+}
+```
+
+**Response thành công:**
+```json
+{
+  "success": true,
+  "message": "Discount applied",
+  "data": {
+    "code": "STAY10",
+    "subtotalPrice": 1500000,
+    "discountAmount": 150000,
+    "totalPrice": 1350000
+  },
+  "errorCode": null
+}
+```
+
+Backend chỉ dùng response này để preview trên UI. Khi user submit booking, backend phải tính lại giá và validate lại discount; không tin số tiền từ frontend.
+
+### 5.4. VNPay IPN
+
+**Request:**
+```text
+GET /api/v1/payments/vnpay/ipn?vnp_TxnRef=...&vnp_Amount=135000000&vnp_ResponseCode=00&vnp_TransactionStatus=00&vnp_SecureHash=...
+```
+
+**Xử lý:**
+- Verify `vnp_SecureHash` bằng `VNPAY_HASH_SECRET`.
+- Tìm payment bằng `vnp_TxnRef`.
+- Kiểm tra `vnp_Amount / 100` khớp `payments.amount`.
+- Nếu `vnp_ResponseCode=00` và `vnp_TransactionStatus=00`, cập nhật payment `SUCCESS`, booking `CONFIRMED`, tăng `discount_codes.used_count` nếu có, rồi gửi email confirmed.
+- Nếu callback bị gửi lại, xử lý idempotent và không cộng usage nhiều lần.
+
+**Response VNPay:**
+```json
+{
+  "RspCode": "00",
+  "Message": "Confirm Success"
+}
+```
+
+Các mã chính:
+
+| RspCode | Ý nghĩa |
+| :--- | :--- |
+| `00` | Confirm Success |
+| `01` | Order not found |
+| `02` | Order already confirmed |
+| `04` | Invalid amount |
+| `97` | Invalid checksum |
+| `99` | Unknown error |
+
+### 5.5. Host chấp nhận booking (AJAX)
 
 **Request:**
 ```

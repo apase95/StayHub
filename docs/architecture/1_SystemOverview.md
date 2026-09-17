@@ -36,12 +36,16 @@ flowchart LR
     Admin((Admin)) -->|Giám sát, quản lý| App
 
     App -->|Lưu thông tin| DB[(PostgreSQL)]
-    App -->|Gửi email thông báo| Mail[Email Service]
+    App -->|Gửi OTP và booking email| Mail[Email Service]
+    App -->|OAuth2 login| Google[Google OAuth2]
+    App -->|Tạo checkout, nhận IPN| VNPay[VNPay Payment Gateway]
     App -->|Lưu ảnh| Storage[Cloudinary / Local Storage]
 ```
 
 - **PostgreSQL**: Cơ sở dữ liệu chính lưu trữ tất cả dữ liệu nghiệp vụ (users, properties, bookings, payments, reviews...).
-- **Email Service**: Gửi thông báo cho Guest và Host khi trạng thái booking thay đổi (hiện tại dùng SMTP, sau có thể tích hợp các dịch vụ như SendGrid).
+- **Email Service**: Gửi OTP đăng ký và thông báo HTML cho Guest khi trạng thái booking thay đổi (hiện tại dùng SMTP/Gmail, sau có thể tích hợp các dịch vụ như SendGrid).
+- **Google OAuth2**: Cho phép đăng nhập/đăng ký nhanh bằng tài khoản Google, tự provision user nội bộ với role `GUEST`.
+- **VNPay Payment Gateway**: Xử lý thanh toán VND qua checkout/QR, redirect user về StayHub và gửi IPN để backend xác nhận thanh toán.
 - **Storage Service**: Lưu trữ ảnh đại diện, ảnh property (dùng Cloudinary cho production, LocalStorage cho development).
 
 ## 4. Các ràng buộc & yêu cầu chất lượng (Quality Goals)
@@ -75,14 +79,16 @@ flowchart TD
     B --> C[Xem kết quả tìm kiếm]
     C --> D[Xem chi tiết property]
     D --> E[Chọn ngày, số khách]
-    E --> F[Đặt phòng & Thanh toán]
-    F --> G[Booking PENDING]
-    G --> H{Host xác nhận}
-    H -->|Accept| I[Booking CONFIRMED]
-    H -->|Reject| J[Booking REJECTED]
-    I --> K[Hoàn thành chuyến đi]
-    K --> L[Booking COMPLETED]
-    L --> M[Guest viết Review]
+    E --> F[Nhập mã giảm giá nếu có]
+    F --> G[Backend tính lại giá]
+    G --> H[Redirect VNPay]
+    H --> I[VNPay thanh toán thành công]
+    I --> J[IPN xác minh payment]
+    J --> K[Booking CONFIRMED]
+    K --> L[My Bookings]
+    L --> M[Hoàn thành chuyến đi]
+    M --> N[Booking COMPLETED]
+    N --> O[Guest viết Review]
 ```
 
 Chi tiết từng bước đã được mô tả trong `flow.md`.
@@ -98,6 +104,7 @@ flowchart TB
         Search[Search & Filter]
         Booking[Booking Management]
         Payment[Payment Processing]
+        Discount[Discount Management]
         Review[Review Management]
         Host[Host Dashboard]
         Admin[Admin Dashboard]
@@ -109,6 +116,7 @@ flowchart TB
     User --> Property
     Property --> Search
     Property --> Booking
+    Discount --> Booking
     Booking --> Payment
     Booking --> Review
     Booking --> Notification
@@ -119,16 +127,17 @@ flowchart TB
     Property --> Storage
 ```
 
-- **Auth**: Xác thực, phân quyền.
+- **Auth**: Xác thực, phân quyền, đăng ký bằng OTP email, đăng nhập Google OAuth2.
 - **User**: Quản lý thông tin người dùng.
 - **Property**: CRUD cho chỗ ở, ảnh, tiện nghi.
 - **Search**: Tìm kiếm, lọc, sắp xếp, phân trang.
 - **Booking**: Quản lý đặt phòng, trạng thái, kiểm tra trùng lịch.
-- **Payment**: Xử lý thanh toán (Mock).
+- **Payment**: Xử lý thanh toán Mock/VNPay, verify IPN, polling trạng thái sau redirect.
+- **Discount**: Validate promo code, tính discount snapshot, chỉ tăng usage sau payment success.
 - **Review**: Đánh giá của Guest.
 - **Host**: Dashboard cho Host.
 - **Admin**: Dashboard cho Admin.
-- **Notification**: Gửi email thông báo.
+- **Notification**: Gửi email OTP và email booking status dạng HTML có plain-text fallback.
 - **Storage**: Lưu trữ ảnh.
 
 ## 7. Công nghệ sử dụng

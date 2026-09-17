@@ -19,6 +19,7 @@ flowchart TB
     P[Property Management]
     B[Booking]
     PAY[Payment]
+    D[Discount]
     R[Review]
     S[Search & Availability]
     N[Notification]
@@ -27,6 +28,7 @@ flowchart TB
     U --> B
     P --> S
     P --> B
+    D --> B
     B --> PAY
     B --> R
     U --> R
@@ -41,7 +43,8 @@ flowchart TB
 - A **Property** has many **Amenities** through `property_amenities`.
 - A **Guest** can create multiple **Bookings**.
 - A **Property** can receive multiple **Bookings** over time.
-- A **Booking** has one payment record in the MVP.
+- A **Booking** can optionally apply one **DiscountCode** and stores price/discount snapshots.
+- A **Booking** has one payment record in the MVP/VNPay flow.
 - A completed **Booking** can have at most one **Review**.
 
 ---
@@ -54,11 +57,14 @@ erDiagram
     USERS {
         bigint id PK
         varchar email UK
+        varchar username UK
         varchar password_hash
         varchar full_name
         varchar phone
         varchar role
         varchar status
+        varchar login_provider
+        varchar provider_id
         timestamptz created_at
         timestamptz updated_at
     }
@@ -115,8 +121,30 @@ erDiagram
         numeric nightly_price
         numeric cleaning_fee
         numeric service_fee
+        numeric subtotal_price
+        bigint discount_code_id FK
+        numeric discount_amount
         numeric total_price
         varchar status
+        timestamptz cancelled_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    DISCOUNT_CODES {
+        bigint id PK
+        varchar code UK
+        varchar name
+        varchar type
+        numeric value
+        numeric max_discount_amount
+        numeric min_booking_amount
+        timestamptz starts_at
+        timestamptz ends_at
+        int usage_limit
+        int used_count
+        int per_user_limit
+        boolean active
         timestamptz created_at
         timestamptz updated_at
     }
@@ -125,9 +153,14 @@ erDiagram
         bigint id PK
         bigint booking_id FK
         varchar payment_method
+        varchar provider
         varchar status
         numeric amount
+        varchar currency
         varchar transaction_id UK
+        varchar provider_txn_ref UK
+        varchar provider_transaction_no
+        text raw_response
         timestamptz paid_at
         timestamptz created_at
         timestamptz updated_at
@@ -155,6 +188,7 @@ erDiagram
     PROPERTIES ||--o{ PROPERTY_AMENITIES : "has"
     AMENITIES ||--o{ PROPERTY_AMENITIES : "assigned to"
 
+    DISCOUNT_CODES ||--o{ BOOKINGS : "applies to"
     BOOKINGS ||--|| PAYMENTS : "has"
     BOOKINGS ||--o| REVIEWS : "can produce"
 ```
@@ -169,11 +203,14 @@ erDiagram
 |---|---|---|---|
 | `id` | BIGINT | PK | User identifier |
 | `email` | VARCHAR(255) | NOT NULL, UNIQUE | Login email |
+| `username` | VARCHAR(80) | UNIQUE | Username for local accounts |
 | `password_hash` | VARCHAR(255) | NOT NULL | BCrypt password hash |
 | `full_name` | VARCHAR(150) | NOT NULL | User full name |
 | `phone` | VARCHAR(30) | NULL | Contact phone |
 | `role` | VARCHAR(20) | NOT NULL | `GUEST`, `HOST`, `ADMIN` |
 | `status` | VARCHAR(20) | NOT NULL | `ACTIVE`, `LOCKED`, `INACTIVE` |
+| `login_provider` | VARCHAR(20) | NOT NULL | `LOCAL`, `GOOGLE` |
+| `provider_id` | VARCHAR(255) | NULL | External OAuth2 provider subject/id |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update timestamp |
 
@@ -339,8 +376,12 @@ flowchart LR
 | `nightly_price` | NUMERIC(12,2) | NOT NULL | Snapshot of nightly price |
 | `cleaning_fee` | NUMERIC(12,2) | NOT NULL | Snapshot fee |
 | `service_fee` | NUMERIC(12,2) | NOT NULL | Snapshot fee |
-| `total_price` | NUMERIC(12,2) | NOT NULL | Final total |
+| `subtotal_price` | NUMERIC(12,2) | NOT NULL | Price before discount |
+| `discount_code_id` | BIGINT | FK → discount_codes.id, NULL | Applied discount code |
+| `discount_amount` | NUMERIC(12,2) | NOT NULL | Discount snapshot |
+| `total_price` | NUMERIC(12,2) | NOT NULL | Final total after discount |
 | `status` | VARCHAR(20) | NOT NULL | Booking status |
+| `cancelled_at` | TIMESTAMPTZ | NULL | Cancellation timestamp |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update timestamp |
 
@@ -372,7 +413,7 @@ properties.price_per_night
 bookings.nightly_price
 ```
 
-`bookings` stores the financial snapshot at booking time.
+`bookings` stores the financial snapshot at booking time, including discount snapshots. The backend recalculates price and discount during booking creation; frontend discount previews are not trusted.
 
 ---
 
@@ -381,16 +422,14 @@ bookings.nightly_price
 ```mermaid
 stateDiagram-v2
 
-    [*] --> PENDING : Payment success
+    [*] --> PENDING_PAYMENT : Booking submitted
 
-    PENDING --> CONFIRMED : Host accepts
-    PENDING --> REJECTED : Host rejects
-    PENDING --> CANCELLED : Guest cancels
+    PENDING_PAYMENT --> CONFIRMED : VNPay success
+    PENDING_PAYMENT --> CANCELLED : VNPay failed/cancelled/expired
 
     CONFIRMED --> CANCELLED : Guest cancels
     CONFIRMED --> COMPLETED : Stay finished
 
-    REJECTED --> [*]
     CANCELLED --> [*]
     COMPLETED --> [*]
 ```
@@ -399,9 +438,8 @@ stateDiagram-v2
 
 | Current | Action | Next |
 |---|---|---|
-| `PENDING` | Host accepts | `CONFIRMED` |
-| `PENDING` | Host rejects | `REJECTED` |
-| `PENDING` | Guest cancels | `CANCELLED` |
+| `PENDING_PAYMENT` | VNPay confirms success through verified IPN | `CONFIRMED` |
+| `PENDING_PAYMENT` | VNPay failed/cancelled/expired | `CANCELLED` |
 | `CONFIRMED` | Guest cancels | `CANCELLED` |
 | `CONFIRMED` | Stay completed | `COMPLETED` |
 
@@ -410,9 +448,8 @@ Invalid transitions should raise a business exception.
 For example:
 
 ```text
-REJECTED → CONFIRMED   ❌
 COMPLETED → CANCELLED  ❌
-CANCELLED → PENDING    ❌
+CANCELLED → CONFIRMED  ❌
 ```
 
 ---
@@ -431,7 +468,7 @@ Equivalent SQL concept:
 
 ```sql
 WHERE property_id = :propertyId
-  AND status IN ('PENDING', 'CONFIRMED')
+  AND status IN ('PENDING_PAYMENT', 'CONFIRMED')
   AND check_in_date < :requestedCheckOut
   AND check_out_date > :requestedCheckIn
 ```
@@ -483,9 +520,14 @@ rather than inclusive comparisons.
 | `id` | BIGINT | PK | Payment identifier |
 | `booking_id` | BIGINT | FK, UNIQUE | Related booking |
 | `payment_method` | VARCHAR(20) | NOT NULL | `MOCK`, `VNPAY`, `MOMO` |
+| `provider` | VARCHAR(20) | NOT NULL | `MOCK`, `VNPAY` |
 | `status` | VARCHAR(20) | NOT NULL | Payment state |
 | `amount` | NUMERIC(12,2) | NOT NULL | Payment amount |
+| `currency` | VARCHAR(3) | NOT NULL | `VND` |
 | `transaction_id` | VARCHAR(255) | UNIQUE | Gateway transaction reference |
+| `provider_txn_ref` | VARCHAR(100) | UNIQUE | VNPay `vnp_TxnRef` |
+| `provider_transaction_no` | VARCHAR(100) | NULL | VNPay `vnp_TransactionNo` |
+| `raw_response` | TEXT | NULL | Raw gateway response for audit/debugging |
 | `paid_at` | TIMESTAMPTZ | NULL | Success time |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update timestamp |
@@ -496,18 +538,31 @@ rather than inclusive comparisons.
 PENDING
 SUCCESS
 FAILED
+CANCELLED
+EXPIRED
 REFUNDED
 ```
 
-## MVP relationship
+## VNPay relationship
 
 ```mermaid
-flowchart LR
-    G[Guest] --> CP[Confirm & Pay]
-    CP --> MP[MockPaymentService]
-    MP --> PS[Payment SUCCESS]
-    PS --> CB[Create Booking]
-    CB --> B[Booking PENDING]
+sequenceDiagram
+    participant Guest
+    participant StayHub
+    participant VNPay
+    participant DB
+
+    Guest->>StayHub: Submit booking + optional discount
+    StayHub->>DB: Create booking PENDING_PAYMENT
+    StayHub->>DB: Create payment PENDING provider=VNPAY
+    StayHub-->>Guest: Redirect to VNPay checkout URL
+    Guest->>VNPay: Pay with bank/card/QR
+    VNPay-->>StayHub: IPN with vnp_SecureHash
+    StayHub->>StayHub: Verify hash and amount
+    StayHub->>DB: Payment SUCCESS, booking CONFIRMED
+    VNPay-->>Guest: Return URL
+    Guest->>StayHub: Payment result page polls status
+    StayHub-->>Guest: Redirect /my-bookings
 ```
 
 ### Recommended business sequence
@@ -515,14 +570,20 @@ flowchart LR
 ```text
 1. Validate request
 2. Check property availability
-3. Calculate price
-4. Create/perform payment
-5. If payment SUCCESS:
-      create booking with PENDING
-6. Return booking confirmation
+3. Calculate subtotal and validate discount
+4. Create booking with PENDING_PAYMENT
+5. Create payment with PENDING and provider_txn_ref
+6. Redirect to VNPay checkout URL
+7. VNPay calls IPN/webhook
+8. Verify secure hash and amount
+9. If payment SUCCESS:
+      payment = SUCCESS
+      booking = CONFIRMED
+      increment discount usage if applicable
+10. Result page polls status and redirects user to /my-bookings
 ```
 
-For real payment gateways later, this flow can evolve into a more transactional/webhook-based design.
+The IPN/webhook is the source of truth. Return URL is only for user experience and must not confirm booking by itself.
 
 ---
 
@@ -588,11 +649,14 @@ classDiagram
 
     class User {
         +String email
+        +String username
         +String passwordHash
         +String fullName
         +String phone
         +UserRole role
         +UserStatus status
+        +UserLoginProvider loginProvider
+        +String providerId
     }
 
     class Property {
@@ -631,16 +695,37 @@ classDiagram
         +BigDecimal nightlyPrice
         +BigDecimal cleaningFee
         +BigDecimal serviceFee
+        +BigDecimal subtotalPrice
+        +Long discountCodeId
+        +BigDecimal discountAmount
         +BigDecimal totalPrice
         +BookingStatus status
+    }
+
+    class DiscountCode {
+        +String code
+        +DiscountType type
+        +BigDecimal value
+        +BigDecimal maxDiscountAmount
+        +BigDecimal minBookingAmount
+        +Instant startsAt
+        +Instant endsAt
+        +Integer usageLimit
+        +Integer usedCount
+        +Integer perUserLimit
+        +Boolean active
     }
 
     class Payment {
         +Long bookingId
         +PaymentMethod paymentMethod
+        +PaymentProvider provider
         +PaymentStatus status
         +BigDecimal amount
+        +String currency
         +String transactionId
+        +String providerTxnRef
+        +String providerTransactionNo
         +Instant paidAt
     }
 
@@ -659,8 +744,15 @@ classDiagram
         ADMIN
     }
 
+    class UserLoginProvider {
+        <<enumeration>>
+        LOCAL
+        GOOGLE
+    }
+
     class BookingStatus {
         <<enumeration>>
+        PENDING_PAYMENT
         PENDING
         CONFIRMED
         CANCELLED
@@ -675,12 +767,26 @@ classDiagram
         MOMO
     }
 
+    class PaymentProvider {
+        <<enumeration>>
+        MOCK
+        VNPAY
+    }
+
     class PaymentStatus {
         <<enumeration>>
         PENDING
         SUCCESS
         FAILED
+        CANCELLED
+        EXPIRED
         REFUNDED
+    }
+
+    class DiscountType {
+        <<enumeration>>
+        PERCENT
+        FIXED
     }
 
     BaseEntity <|-- User
@@ -688,18 +794,23 @@ classDiagram
     BaseEntity <|-- PropertyImage
     BaseEntity <|-- Amenity
     BaseEntity <|-- Booking
+    BaseEntity <|-- DiscountCode
     BaseEntity <|-- Payment
     BaseEntity <|-- Review
 
     User --> UserRole
+    User --> UserLoginProvider
     Booking --> BookingStatus
     Payment --> PaymentMethod
+    Payment --> PaymentProvider
     Payment --> PaymentStatus
+    DiscountCode --> DiscountType
 
     User "1" --> "0..*" Property : hosts
     User "1" --> "0..*" Booking : guest
     Property "1" --> "0..*" PropertyImage
     Property "1" --> "0..*" Booking
+    DiscountCode "1" --> "0..*" Booking : optional
     Booking "1" --> "1" Payment
     Booking "1" --> "0..1" Review
 ```
@@ -735,6 +846,10 @@ Booking
   @ManyToOne
       → guest
 
+Booking
+  @ManyToOne(optional = true)
+      → discountCode
+
 Payment
   @OneToOne
       → booking
@@ -754,6 +869,7 @@ flowchart TB
     A[Amenity]
     B[Booking]
     PAY[Payment]
+    D[DiscountCode]
     R[Review]
 
     U -->|host_id| P
@@ -761,6 +877,7 @@ flowchart TB
     P <-->|property_amenities| A
     P -->|property_id| B
     U -->|guest_id| B
+    D -->|discount_code_id| B
     B -->|booking_id| PAY
     B -->|booking_id| R
 ```
@@ -776,7 +893,8 @@ flowchart TB
 | `property_images` | `id` | `property_id → properties.id` |
 | `amenities` | `id` | — |
 | `property_amenities` | `(property_id, amenity_id)` | property + amenity |
-| `bookings` | `id` | `property_id`, `guest_id` |
+| `discount_codes` | `id` | — |
+| `bookings` | `id` | `property_id`, `guest_id`, optional `discount_code_id` |
 | `payments` | `id` | `booking_id` |
 | `reviews` | `id` | `booking_id`, `property_id`, `guest_id` |
 
@@ -796,6 +914,7 @@ flowchart LR
 
     BOOKINGS[(bookings)]
     PAYMENTS[(payments)]
+    DISCOUNTS[(discount_codes)]
     REVIEWS[(reviews)]
 
     USERS -->|"1:N host_id"| PROPERTIES
@@ -806,6 +925,7 @@ flowchart LR
 
     USERS -->|"1:N guest_id"| BOOKINGS
     PROPERTIES -->|"1:N property_id"| BOOKINGS
+    DISCOUNTS -->|"1:N optional discount_code_id"| BOOKINGS
 
     BOOKINGS -->|"1:1 booking_id"| PAYMENTS
     BOOKINGS -->|"1:0..1 booking_id"| REVIEWS
@@ -854,6 +974,23 @@ ON bookings(guest_id);
 
 CREATE INDEX idx_bookings_status
 ON bookings(status);
+```
+
+## `discount_codes`
+
+```sql
+CREATE UNIQUE INDEX uk_discount_codes_code
+ON discount_codes(code);
+
+CREATE INDEX idx_discount_codes_active_window
+ON discount_codes(active, starts_at, ends_at);
+```
+
+## `payments`
+
+```sql
+CREATE UNIQUE INDEX uk_payments_provider_txn_ref
+ON payments(provider, provider_txn_ref);
 ```
 
 ## `property_images`
@@ -942,7 +1079,11 @@ V6__create_property_amenities.sql
 V7__create_bookings.sql
 V8__create_payments.sql
 V9__create_reviews.sql
-V10__add_database_indexes.sql
+V10__add_usernames.sql
+V11__add_user_login_provider.sql
+V12__create_discount_codes.sql
+V13__add_booking_discount_and_pending_payment.sql
+V14__add_vnpay_payment_fields.sql
 ```
 
 ## Recommended rule
@@ -1008,7 +1149,9 @@ BaseEntity
 
 ```text
 email must be unique
+username should be unique for local accounts
 role ∈ GUEST, HOST, ADMIN
+login_provider ∈ LOCAL, GOOGLE
 ```
 
 ## Property
@@ -1028,6 +1171,18 @@ check_in_date < check_out_date
 guests > 0
 guests <= property.max_guests
 no date overlap with active bookings
+PENDING_PAYMENT and CONFIRMED block availability
+subtotal_price - discount_amount = total_price
+```
+
+## Discount
+
+```text
+code must be unique
+type ∈ PERCENT, FIXED
+value > 0
+used_count increments only after verified payment SUCCESS
+frontend preview must be revalidated when creating booking/payment
 ```
 
 ## Payment
@@ -1035,7 +1190,9 @@ no date overlap with active bookings
 ```text
 amount >= 0
 one payment record per MVP booking
-booking is created only after required payment success
+VNPay IPN/webhook is the source of truth
+verify secure hash and amount before marking payment SUCCESS
+booking CONFIRMED only after verified payment SUCCESS
 ```
 
 ## Review
@@ -1063,6 +1220,9 @@ com.stayhub.property
 
 com.stayhub.booking
     └── bookings
+
+com.stayhub.discount
+    └── discount_codes
 
 com.stayhub.payment
     └── payments
@@ -1108,7 +1268,7 @@ notifications
 - created_at
 ```
 
-## Real payment
+## Payment extensions
 
 Possible additions:
 
@@ -1142,14 +1302,16 @@ or PostgreSQL range/exclusion constraints to strengthen date-overlap guarantees.
           ▼                                   ▼
    ┌───────────────┐                   ┌───────────────┐
    │  PROPERTIES   │◄──────────────────│   BOOKINGS    │
-   └───────┬───────┘                   └───────┬───────┘
-           │                                   │
-     ┌─────┼─────────┐                   ┌─────┴─────┐
-     ▼     ▼         ▼                   ▼           ▼
-  IMAGES AMENITIES BOOKINGS          PAYMENTS     REVIEWS
-           │
-           ▼
-  PROPERTY_AMENITIES
+   └───────┬───────┘                   └───┬─────┬─────┘
+           │                               │     │
+     ┌─────┼─────────┐                     │     ▼
+     ▼     ▼         ▼                     │  PAYMENTS
+  IMAGES AMENITIES BOOKINGS                │
+           │                               ▼
+           ▼                         DISCOUNT_CODES
+  PROPERTY_AMENITIES                       │
+                                           ▼
+                                        REVIEWS
 ```
 
 ## MVP tables
@@ -1163,6 +1325,7 @@ or PostgreSQL range/exclusion constraints to strengthen date-overlap guarantees.
 6. bookings
 7. payments
 8. reviews
+9. discount_codes
 ```
 
 This design supports the complete MVP flow:
@@ -1176,15 +1339,17 @@ Property Detail
     ↓
 Check Availability
     ↓
-Create Payment
+Apply Discount optional
     ↓
-Payment Success
+Create Booking PENDING_PAYMENT
     ↓
-Booking PENDING
+Create VNPay Payment PENDING
     ↓
-Host Accept / Reject
+VNPay Checkout
     ↓
-CONFIRMED / REJECTED
+Verified IPN Payment Success
+    ↓
+Booking CONFIRMED
     ↓
 COMPLETED
     ↓

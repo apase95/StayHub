@@ -5,11 +5,14 @@ erDiagram
     USERS {
         bigint id PK
         varchar email UK
+        varchar username UK
         varchar password_hash
         varchar full_name
         varchar phone
         varchar role
         varchar status
+        varchar login_provider
+        varchar provider_id
         timestamptz created_at
         timestamptz updated_at
     }
@@ -66,8 +69,30 @@ erDiagram
         numeric nightly_price
         numeric cleaning_fee
         numeric service_fee
+        numeric subtotal_price
+        bigint discount_code_id FK
+        numeric discount_amount
         numeric total_price
         varchar status
+        timestamptz cancelled_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    DISCOUNT_CODES {
+        bigint id PK
+        varchar code UK
+        varchar name
+        varchar type
+        numeric value
+        numeric max_discount_amount
+        numeric min_booking_amount
+        timestamptz starts_at
+        timestamptz ends_at
+        int usage_limit
+        int used_count
+        int per_user_limit
+        boolean active
         timestamptz created_at
         timestamptz updated_at
     }
@@ -76,9 +101,14 @@ erDiagram
         bigint id PK
         bigint booking_id FK
         varchar payment_method
+        varchar provider
         varchar status
         numeric amount
+        varchar currency
         varchar transaction_id UK
+        varchar provider_txn_ref UK
+        varchar provider_transaction_no
+        text raw_response
         timestamptz paid_at
         timestamptz created_at
         timestamptz updated_at
@@ -106,6 +136,7 @@ erDiagram
     PROPERTIES ||--o{ PROPERTY_AMENITIES : "has"
     AMENITIES ||--o{ PROPERTY_AMENITIES : "assigned to"
 
+    DISCOUNT_CODES ||--o{ BOOKINGS : "applies to"
     BOOKINGS ||--|| PAYMENTS : "has"
     BOOKINGS ||--o| REVIEWS : "can produce"
 ```
