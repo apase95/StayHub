@@ -1,18 +1,24 @@
 package com.stayhub.booking;
 
+import com.stayhub.auth.CustomOAuth2UserService;
 import com.stayhub.auth.UserPrincipal;
 import com.stayhub.booking.dto.BookingCreateRequest;
 import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
+import com.stayhub.common.exception.ResourceNotFoundException;
 import com.stayhub.property.PropertyService;
 import com.stayhub.review.ReviewService;
 import com.stayhub.review.dto.ReviewCreateRequest;
+import com.stayhub.user.User;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -30,6 +36,7 @@ public class BookingController {
     private final BookingService bookingService;
     private final PropertyService propertyService;
     private final ReviewService reviewService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @GetMapping("/properties/{id}/book")
     public String showBookingPage(@PathVariable Long id,
@@ -38,8 +45,9 @@ public class BookingController {
                                   @RequestParam(required = false)
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
                                   @RequestParam(required = false) Integer guests,
-                                  @AuthenticationPrincipal UserPrincipal principal,
+                                  Authentication authentication,
                                   Model model) {
+        UserPrincipal principal = currentPrincipal(authentication);
         BookingCreateRequest request = new BookingCreateRequest();
         request.setPropertyId(id);
         request.setCheckInDate(checkInDate != null ? checkInDate : LocalDate.now().plusDays(1));
@@ -52,9 +60,10 @@ public class BookingController {
     @PostMapping("/bookings")
     public String createBooking(@Valid @ModelAttribute("bookingRequest") BookingCreateRequest request,
                                 BindingResult bindingResult,
-                                @AuthenticationPrincipal UserPrincipal principal,
+                                Authentication authentication,
                                 Model model,
                                 RedirectAttributes redirectAttributes) {
+        UserPrincipal principal = currentPrincipal(authentication);
         if (bindingResult.hasErrors()) {
             addBookingPageModel(model, request, principal, "Please review your booking details.");
             return "booking/booking";
@@ -72,8 +81,9 @@ public class BookingController {
 
     @GetMapping("/bookings/{id}/payment")
     public String showPaymentSuccess(@PathVariable Long id,
-                                     @AuthenticationPrincipal UserPrincipal principal,
+                                     Authentication authentication,
                                      Model model) {
+        UserPrincipal principal = currentPrincipal(authentication);
         model.addAttribute("booking", bookingService.getBookingForGuest(principal.getId(), id));
         if (!model.containsAttribute("paymentMessage")) {
             model.addAttribute("paymentMessage", "Mock payment already completed for this booking.");
@@ -82,9 +92,10 @@ public class BookingController {
     }
 
     @GetMapping("/bookings")
-    public String showMyBookings(@AuthenticationPrincipal UserPrincipal principal,
+    public String showMyBookings(Authentication authentication,
                                  @RequestParam(defaultValue = "pending") String tab,
                                  Model model) {
+        UserPrincipal principal = currentPrincipal(authentication);
         List<BookingResponse> bookings = bookingService.getGuestBookings(principal.getId());
         model.addAttribute("tab", tab);
         model.addAttribute("allBookings", bookings);
@@ -98,8 +109,9 @@ public class BookingController {
 
     @GetMapping("/bookings/{id}")
     public String showBookingDetail(@PathVariable Long id,
-                                    @AuthenticationPrincipal UserPrincipal principal,
+                                    Authentication authentication,
                                     Model model) {
+        UserPrincipal principal = currentPrincipal(authentication);
         BookingResponse booking = bookingService.getBookingForGuest(principal.getId(), id);
         addBookingDetailModel(model, booking, "guest");
         return "booking/booking-detail";
@@ -107,8 +119,9 @@ public class BookingController {
 
     @PostMapping("/bookings/{id}/cancel")
     public String cancelBooking(@PathVariable Long id,
-                                @AuthenticationPrincipal UserPrincipal principal,
+                                Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
+        UserPrincipal principal = currentPrincipal(authentication);
         bookingService.cancelBooking(principal.getId(), id);
         redirectAttributes.addFlashAttribute("message", "Booking cancelled successfully.");
         return "redirect:/bookings/" + id;
@@ -116,8 +129,9 @@ public class BookingController {
 
     @GetMapping("/host/bookings/{id}")
     public String showHostBookingDetail(@PathVariable Long id,
-                                        @AuthenticationPrincipal UserPrincipal principal,
+                                        Authentication authentication,
                                         Model model) {
+        UserPrincipal principal = currentPrincipal(authentication);
         BookingResponse booking = bookingService.getBookingForHost(principal.getId(), id);
         addBookingDetailModel(model, booking, "host");
         return "booking/booking-detail";
@@ -130,6 +144,29 @@ public class BookingController {
         if (!model.containsAttribute("reviewRequest")) {
             model.addAttribute("reviewRequest", new ReviewCreateRequest());
         }
+    }
+
+    private UserPrincipal currentPrincipal(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+        if (authentication.getPrincipal() instanceof UserPrincipal principal) {
+            return principal;
+        }
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Token
+                && oauth2Token.getPrincipal() instanceof OAuth2User oauth2User) {
+            User user = customOAuth2UserService.upsertGoogleUser(oauth2User.getAttributes());
+            UserPrincipal principal = UserPrincipal.create(user, oauth2User.getAttributes(), "sub");
+            OAuth2AuthenticationToken localAuthentication = new OAuth2AuthenticationToken(
+                    principal,
+                    principal.getAuthorities(),
+                    oauth2Token.getAuthorizedClientRegistrationId()
+            );
+            localAuthentication.setDetails(oauth2Token.getDetails());
+            SecurityContextHolder.getContext().setAuthentication(localAuthentication);
+            return principal;
+        }
+        throw new ResourceNotFoundException("Guest not found");
     }
 
     private void addBookingPageModel(Model model, BookingCreateRequest request, UserPrincipal principal, String errorMessage) {

@@ -51,6 +51,18 @@
                 </button>
             </form>
 
+            <div class="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-text-gray">
+                <span class="h-px flex-1 bg-border"></span>
+                or
+                <span class="h-px flex-1 bg-border"></span>
+            </div>
+
+            <a th:href="@{/oauth2/authorization/google}"
+               class="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-white px-4 py-3 font-bold text-text-900 transition hover:bg-bg-light">
+                <span class="text-lg">G</span>
+                Continue with Google
+            </a>
+
             <div class="mt-6 text-center text-sm text-text-gray">
                 Don't have an account? 
                 <a th:href="@{/register}" class="text-primary-500 hover:underline font-semibold">Sign up</a>

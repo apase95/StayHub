@@ -2,6 +2,9 @@ package com.stayhub.config;
 
 import com.stayhub.common.security.ApiAccessDeniedHandler;
 import com.stayhub.common.security.ApiAuthenticationEntryPoint;
+import com.stayhub.auth.CustomOAuth2UserService;
+import com.stayhub.auth.OAuth2LoginSuccessHandler;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,13 +31,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            ApiAuthenticationEntryPoint apiAuthenticationEntryPoint,
-                                           ApiAccessDeniedHandler apiAccessDeniedHandler) throws Exception {
+                                           ApiAccessDeniedHandler apiAccessDeniedHandler,
+                                           ObjectProvider<CustomOAuth2UserService> customOAuth2UserService,
+                                           ObjectProvider<OAuth2LoginSuccessHandler> oauth2LoginSuccessHandler) throws Exception {
         AntPathRequestMatcher apiRequestMatcher = new AntPathRequestMatcher("/api/**");
 
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
-                .requestMatchers("/login", "/register").permitAll()
+                .requestMatchers("/login", "/register", "/register/verify").permitAll()
                 .requestMatchers(HttpMethod.GET,
                         "/properties", "/properties/*",
                         "/api/v1/properties", "/api/v1/properties/*",
@@ -51,6 +56,12 @@ public class SecurityConfig {
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
+            .oauth2Login(oauth2 -> {
+                oauth2.loginPage("/login")
+                    .defaultSuccessUrl("/", true)
+                    .userInfoEndpoint(userInfo -> customOAuth2UserService.ifAvailable(userInfo::userService));
+                oauth2LoginSuccessHandler.ifAvailable(oauth2::successHandler);
+            })
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "POST"))
                 .logoutSuccessUrl("/")

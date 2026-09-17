@@ -3,12 +3,22 @@ package com.stayhub.auth.dto;
 import com.stayhub.user.EmailNormalizer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class RegisterRequest {
-    
+
+    @NotBlank(message = "Full name is required")
+    @Size(max = 150, message = "Full name must not exceed 150 characters")
+    private String fullName;
+
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Username can only contain letters, numbers, dots, underscores and hyphens")
+    private String username;
+     
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     @Size(max = 255, message = "Email must not exceed 255 characters")
@@ -18,11 +28,14 @@ public class RegisterRequest {
     @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters")
     private String password;
 
-    @NotBlank(message = "Full name is required")
-    @Size(max = 150, message = "Full name must not exceed 150 characters")
-    private String fullName;
+    @NotBlank(message = "Confirm password is required")
+    private String confirmPassword;
 
     public void setEmail(String email) {
         this.email = EmailNormalizer.normalize(email);
+    }
+
+    public void setUsername(String username) {
+        this.username = username == null ? null : username.trim().toLowerCase();
     }
 }

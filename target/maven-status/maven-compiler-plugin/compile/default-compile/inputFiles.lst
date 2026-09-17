@@ -7,9 +7,12 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/AuthServiceImpl.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/CustomOAuth2UserService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/CustomUserDetailsService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/OAuth2LoginSuccessHandler.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/UserPrincipal.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/dto/RegisterRequest.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/auth/dto/VerifyRegistrationRequest.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/booking/Booking.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/booking/BookingController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/booking/BookingMapper.java
@@ -49,6 +52,7 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/host/HostPropertyRestController.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/notification/EmailNotificationService.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/notification/EmailTemplateRenderer.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/notification/NotificationService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/MockPaymentService.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/payment/Payment.java
@@ -99,6 +103,7 @@
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/EmailNormalizer.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/User.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserController.java
+/home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserLoginProvider.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserMapper.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRepository.java
 /home/hodangthaiduy/Workspace/Projects/StayHub/src/main/java/com/stayhub/user/UserRole.java

@@ -4,5 +4,7 @@ import com.stayhub.auth.dto.RegisterRequest;
 
 public interface AuthService {
 
-    void register(RegisterRequest request);
+    void requestRegistrationOtp(RegisterRequest request);
+
+    void verifyRegistration(String email, String otp);
 }
