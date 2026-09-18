@@ -84,4 +84,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             """)
     List<Booking> findBookingRequestsByHost(@Param("hostId") Long hostId,
                                             @Param("status") BookingStatus status);
+
+    long countByGuestIdAndDiscountCodeId(Long guestId, Long discountCodeId);
 }

@@ -38,6 +38,7 @@ public class BookingMapper {
                 .subtotal(booking.getNightlyPrice().multiply(BigDecimal.valueOf(nights)))
                 .cleaningFee(booking.getCleaningFee())
                 .serviceFee(booking.getServiceFee())
+                .discountAmount(booking.getDiscountAmount())
                 .totalPrice(booking.getTotalPrice())
                 .status(booking.getStatus())
                 .paymentMethod(payment != null ? payment.getPaymentMethod() : null)

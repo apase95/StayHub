@@ -8,6 +8,8 @@ import com.stayhub.booking.dto.BookingResponse;
 import com.stayhub.common.exception.BusinessException;
 import com.stayhub.common.exception.InvalidStateTransitionException;
 import com.stayhub.common.exception.ResourceNotFoundException;
+import com.stayhub.discount.AppliedDiscount;
+import com.stayhub.discount.DiscountService;
 import com.stayhub.notification.NotificationService;
 import com.stayhub.payment.PaymentService;
 import com.stayhub.property.Property;
@@ -39,6 +41,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final PaymentService paymentService;
     private final NotificationService notificationService;
+    private final DiscountService discountService;
 
     @Override
     @Transactional
@@ -52,6 +55,8 @@ public class BookingServiceImpl implements BookingService {
         ensureAvailable(property.getId(), request.getCheckInDate(), request.getCheckOutDate());
 
         BookingPriceQuote quote = bookingPriceService.calculate(property, request.getCheckInDate(), request.getCheckOutDate());
+        AppliedDiscount discount = discountService.apply(guestId, request.getDiscountCode(), quote.getTotalPrice());
+        BigDecimal totalPrice = quote.getTotalPrice().subtract(discount.amount());
         Booking booking = Booking.builder()
                 .property(property)
                 .guest(guest)
@@ -62,8 +67,9 @@ public class BookingServiceImpl implements BookingService {
                 .cleaningFee(quote.getCleaningFee())
                 .serviceFee(quote.getServiceFee())
                 .subtotalPrice(quote.getTotalPrice())
-                .discountAmount(BigDecimal.ZERO)
-                .totalPrice(quote.getTotalPrice())
+                .discountCodeId(discount.discountCodeId())
+                .discountAmount(discount.amount())
+                .totalPrice(totalPrice)
                 .status(BookingStatus.PENDING)
                 .build();
 

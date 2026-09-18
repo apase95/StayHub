@@ -34,6 +34,8 @@ public class BookingResponse {
     private BigDecimal subtotal;
     private BigDecimal cleaningFee;
     private BigDecimal serviceFee;
+    private String discountCode;
+    private BigDecimal discountAmount;
     private BigDecimal totalPrice;
     private BookingStatus status;
     private PaymentMethod paymentMethod;
