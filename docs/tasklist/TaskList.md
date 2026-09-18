@@ -186,9 +186,9 @@ StayHub/
 
 - [x] **TSK-066** `[DB_Payment]` Mở rộng `payments`: provider `VNPAY`, currency `VND`, `provider_txn_ref`, `provider_transaction_no`, `raw_response`, trạng thái `PENDING/SUCCESS/FAILED/CANCELLED/EXPIRED`. *(Estimate: 1h · Priority: High)*
 
-- [ ] **TSK-067** `[BE_Discount]` Implement `DiscountCode`, repository, service validate/apply; backend tự tính lại giá, không tin discount amount từ frontend. *(Estimate: 2h · Priority: High)*
+- [x] **TSK-067** `[BE_Discount]` Implement `DiscountCode`, repository, service validate/apply; backend tự tính lại giá, không tin discount amount từ frontend. *(Estimate: 2h · Priority: High)*
 
-- [ ] **TSK-068** `[API_Discount]` Thêm `POST /api/v1/discounts/validate` để preview discount trên booking page. *(Estimate: 1h · Priority: Medium)*
+- [x] **TSK-068** `[API_Discount]` Thêm `POST /api/v1/discounts/validate` để preview discount trên booking page. *(Estimate: 1h · Priority: Medium)*
 
 - [ ] **TSK-069** `[BE_Payment]` Thêm VNPay config properties từ `.env`: `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_PAY_URL`, `VNPAY_RETURN_URL`, `VNPAY_IPN_URL`. *(Estimate: 1h · Priority: High)*
 
