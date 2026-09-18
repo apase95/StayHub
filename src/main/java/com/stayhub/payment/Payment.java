@@ -42,8 +42,23 @@ public class Payment extends BaseEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
+    @Column(nullable = false, length = 20)
+    private String provider;
+
+    @Column(nullable = false, length = 3)
+    private String currency;
+
     @Column(name = "transaction_id", unique = true, length = 255)
     private String transactionId;
+
+    @Column(name = "provider_txn_ref", unique = true, length = 255)
+    private String providerTxnRef;
+
+    @Column(name = "provider_transaction_no", length = 255)
+    private String providerTransactionNo;
+
+    @Column(name = "raw_response", columnDefinition = "jsonb")
+    private String rawResponse;
 
     @Column(name = "paid_at")
     private Instant paidAt;

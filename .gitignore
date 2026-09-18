@@ -12,6 +12,8 @@ target/
 .settings/
 .idea/
 *.iml
+.vscode/
+.history/
 
 .DS_Store
 Thumbs.db
@@ -22,3 +24,11 @@ yarn-error.log
 uploads/
 
 *.log
+
+.cache/
+.graphify/
+graphify-out/
+graph.json
+.opencode/
+.superpower/
+.ponytail/

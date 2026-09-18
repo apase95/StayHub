@@ -180,11 +180,11 @@ StayHub/
 
 - [x] **TSK-063** `[Docs]` Hoàn thiện thiết kế Discount + VNPay pipeline trong API/database/system diagrams trước khi implement. *(Estimate: 1h · Priority: High)*
 
-- [ ] **TSK-064** `[DB_Discount]` Thêm migration `discount_codes`: code unique, type `PERCENT/FIXED`, value, cap, minimum amount, time window, usage limits, active flag. *(Estimate: 1h · Priority: High)*
+- [x] **TSK-064** `[DB_Discount]` Thêm migration `discount_codes`: code unique, type `PERCENT/FIXED`, value, cap, minimum amount, time window, usage limits, active flag. *(Estimate: 1h · Priority: High)*
 
-- [ ] **TSK-065** `[DB_Booking]` Mở rộng `bookings`: `subtotal_price`, `discount_code_id`, `discount_amount`, trạng thái `PENDING_PAYMENT`, và đảm bảo `total_price` là tổng sau discount. *(Estimate: 1h · Priority: High)*
+- [x] **TSK-065** `[DB_Booking]` Mở rộng `bookings`: `subtotal_price`, `discount_code_id`, `discount_amount`, trạng thái `PENDING_PAYMENT`, và đảm bảo `total_price` là tổng sau discount. *(Estimate: 1h · Priority: High)*
 
-- [ ] **TSK-066** `[DB_Payment]` Mở rộng `payments`: provider `VNPAY`, currency `VND`, `provider_txn_ref`, `provider_transaction_no`, `raw_response`, trạng thái `PENDING/SUCCESS/FAILED/CANCELLED/EXPIRED`. *(Estimate: 1h · Priority: High)*
+- [x] **TSK-066** `[DB_Payment]` Mở rộng `payments`: provider `VNPAY`, currency `VND`, `provider_txn_ref`, `provider_transaction_no`, `raw_response`, trạng thái `PENDING/SUCCESS/FAILED/CANCELLED/EXPIRED`. *(Estimate: 1h · Priority: High)*
 
 - [ ] **TSK-067** `[BE_Discount]` Implement `DiscountCode`, repository, service validate/apply; backend tự tính lại giá, không tin discount amount từ frontend. *(Estimate: 2h · Priority: High)*
 

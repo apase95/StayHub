@@ -15,6 +15,7 @@ import com.stayhub.property.PropertyRepository;
 import com.stayhub.property.PropertyStatus;
 import com.stayhub.user.User;
 import com.stayhub.user.UserRepository;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -60,6 +61,8 @@ public class BookingServiceImpl implements BookingService {
                 .nightlyPrice(quote.getNightlyPrice())
                 .cleaningFee(quote.getCleaningFee())
                 .serviceFee(quote.getServiceFee())
+                .subtotalPrice(quote.getTotalPrice())
+                .discountAmount(BigDecimal.ZERO)
                 .totalPrice(quote.getTotalPrice())
                 .status(BookingStatus.PENDING)
                 .build();

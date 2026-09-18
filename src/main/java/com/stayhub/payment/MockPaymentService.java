@@ -19,6 +19,8 @@ public class MockPaymentService implements PaymentService {
                 .paymentMethod(PaymentMethod.MOCK)
                 .status(PaymentStatus.SUCCESS)
                 .amount(booking.getTotalPrice())
+                .provider(PaymentMethod.MOCK.name())
+                .currency("VND")
                 .transactionId("MOCK-" + UUID.randomUUID())
                 .paidAt(Instant.now())
                 .build();
