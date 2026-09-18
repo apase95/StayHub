@@ -41,6 +41,7 @@ public class BookingResponse {
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
     private String transactionId;
+    private String checkoutUrl;
     private Instant paidAt;
     private Instant createdAt;
     private Instant updatedAt;

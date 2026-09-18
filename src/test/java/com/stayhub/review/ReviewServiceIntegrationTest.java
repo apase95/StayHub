@@ -77,7 +77,9 @@ class ReviewServiceIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void createsReviewForCompletedBookingAndUpdatesPropertyRating() {
         var booking = bookingService.createBooking(guest.getId(), bookingRequest(10, 12));
-        bookingService.acceptBooking(host.getId(), booking.getId());
+        var saved = bookingRepository.findById(booking.getId()).orElseThrow();
+        saved.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(saved);
         var completed = bookingService.completeBooking(host.getId(), booking.getId());
         assertThat(completed.getStatus()).isEqualTo(BookingStatus.COMPLETED);
 
@@ -99,7 +101,9 @@ class ReviewServiceIntegrationTest extends PostgreSqlIntegrationTest {
                 .extracting("errorCode")
                 .isEqualTo("ERR_REVIEW_NOT_ALLOWED");
 
-        bookingService.acceptBooking(host.getId(), booking.getId());
+        var saved = bookingRepository.findById(booking.getId()).orElseThrow();
+        saved.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(saved);
         bookingService.completeBooking(host.getId(), booking.getId());
         reviewService.createReview(guest.getId(), booking.getId(), reviewRequest((short) 4, "Good stay."));
 

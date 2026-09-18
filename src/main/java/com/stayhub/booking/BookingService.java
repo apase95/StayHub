@@ -11,6 +11,8 @@ import java.util.List;
 public interface BookingService {
     BookingResponse createBooking(Long guestId, BookingCreateRequest request);
 
+    BookingResponse createBooking(Long guestId, BookingCreateRequest request, String ipAddress);
+
     AvailabilityResponse checkAvailability(AvailabilityRequest request);
 
     BookingPriceQuote quote(Long propertyId, LocalDate checkInDate, LocalDate checkOutDate, Integer guests);

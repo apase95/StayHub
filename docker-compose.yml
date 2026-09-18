@@ -27,6 +27,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-stayhub_user}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       SERVER_PORT: 8080
+      APP_LOCAL_URL: ${APP_LOCAL_URL:-http://localhost:8080}
       ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-false}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
@@ -60,6 +61,13 @@ services:
         condition: service_healthy
     volumes:
       - property_uploads:/app/uploads
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--url", "http://app:8080"]
+    depends_on:
+      - app
 
 volumes:
   pgdata_v16:

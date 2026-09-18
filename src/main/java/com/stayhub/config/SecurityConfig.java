@@ -39,11 +39,13 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
-                .requestMatchers("/login", "/register", "/register/verify").permitAll()
+                .requestMatchers("/login", "/register", "/register/verify", "/payments/vnpay/return").permitAll()
                 .requestMatchers(HttpMethod.GET,
                         "/properties", "/properties/*",
                         "/api/v1/properties", "/api/v1/properties/*",
-                        "/api/v1/amenities").permitAll()
+                        "/api/v1/amenities",
+                        "/api/v1/payments/vnpay/ipn",
+                        "/api/v1/payments/vnpay/status").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/bookings/check-availability").permitAll()
                 .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")                
                 .requestMatchers("/host/**", "/api/v1/host/**", "/api/v1/bookings/host/**").hasAnyRole("HOST", "ADMIN")

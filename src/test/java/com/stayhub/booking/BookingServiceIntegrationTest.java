@@ -73,10 +73,10 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
 
         var response = bookingService.createBooking(guest.getId(), request);
 
-        assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
-        assertThat(response.getPaymentMethod()).isEqualTo(PaymentMethod.MOCK);
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
-        assertThat(response.getTransactionId()).startsWith("MOCK-");
+        assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING_PAYMENT);
+        assertThat(response.getPaymentMethod()).isEqualTo(PaymentMethod.VNPAY);
+        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(response.getCheckoutUrl()).startsWith("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?");
         assertThat(response.getNightlyPrice()).isEqualByComparingTo("1000000.00");
         assertThat(response.getSubtotal()).isEqualByComparingTo("3000000.00");
         assertThat(response.getCleaningFee()).isEqualByComparingTo("100000.00");
@@ -93,8 +93,20 @@ class BookingServiceIntegrationTest extends PostgreSqlIntegrationTest {
 
     @Test
     void hostCanAcceptOrRejectPendingBookingsOnly() {
-        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
-                LocalDate.now().plusDays(40), LocalDate.now().plusDays(42), 2));
+        var booking = bookingRepository.save(Booking.builder()
+                .property(property)
+                .guest(guest)
+                .checkInDate(LocalDate.now().plusDays(40))
+                .checkOutDate(LocalDate.now().plusDays(42))
+                .guests(2)
+                .nightlyPrice(new BigDecimal("1000000.00"))
+                .cleaningFee(new BigDecimal("100000.00"))
+                .serviceFee(new BigDecimal("200000.00"))
+                .subtotalPrice(new BigDecimal("2300000.00"))
+                .discountAmount(BigDecimal.ZERO)
+                .totalPrice(new BigDecimal("2300000.00"))
+                .status(BookingStatus.PENDING)
+                .build());
 
         var accepted = bookingService.acceptBooking(host.getId(), booking.getId());
 

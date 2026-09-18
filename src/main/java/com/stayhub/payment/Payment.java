@@ -12,11 +12,14 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "payments")
@@ -58,7 +61,8 @@ public class Payment extends BaseEntity {
     private String providerTransactionNo;
 
     @Column(name = "raw_response", columnDefinition = "jsonb")
-    private String rawResponse;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, String> rawResponse;
 
     @Column(name = "paid_at")
     private Instant paidAt;

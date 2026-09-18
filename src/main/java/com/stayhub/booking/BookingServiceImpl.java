@@ -32,7 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
-    private static final Set<BookingStatus> BLOCKING_STATUSES = Set.of(BookingStatus.PENDING, BookingStatus.CONFIRMED);
+    private static final Set<BookingStatus> BLOCKING_STATUSES = Set.of(
+            BookingStatus.PENDING,
+            BookingStatus.PENDING_PAYMENT,
+            BookingStatus.CONFIRMED
+    );
 
     private final BookingRepository bookingRepository;
     private final PropertyRepository propertyRepository;
@@ -46,6 +50,12 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponse createBooking(Long guestId, BookingCreateRequest request) {
+        return createBooking(guestId, request, "127.0.0.1");
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse createBooking(Long guestId, BookingCreateRequest request, String ipAddress) {
         validateDates(request.getCheckInDate(), request.getCheckOutDate());
         User guest = userRepository.findById(guestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
@@ -70,13 +80,15 @@ public class BookingServiceImpl implements BookingService {
                 .discountCodeId(discount.discountCodeId())
                 .discountAmount(discount.amount())
                 .totalPrice(totalPrice)
-                .status(BookingStatus.PENDING)
+                .status(BookingStatus.PENDING_PAYMENT)
                 .build();
 
         try {
             Booking saved = bookingRepository.saveAndFlush(booking);
-            saved.setPayment(paymentService.createSuccessfulPayment(saved));
-            return bookingMapper.toResponse(saved);
+            saved.setPayment(paymentService.createPendingVnpayPayment(saved));
+            BookingResponse response = bookingMapper.toResponse(saved);
+            response.setCheckoutUrl(paymentService.buildVnpayCheckoutUrl(saved.getPayment(), ipAddress));
+            return response;
         } catch (DataIntegrityViolationException exception) {
             throw roomNotAvailable();
         }
@@ -168,8 +180,10 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailedByIdForUpdate(bookingId)
                 .filter(found -> found.getGuest().getId().equals(guestId))
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
-            throw new InvalidStateTransitionException("Only pending or confirmed bookings can be cancelled.");
+        if (booking.getStatus() != BookingStatus.PENDING
+                && booking.getStatus() != BookingStatus.PENDING_PAYMENT
+                && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new InvalidStateTransitionException("Only pending, pending payment, or confirmed bookings can be cancelled.");
         }
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancelledAt(Instant.now());
