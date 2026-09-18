@@ -11,6 +11,7 @@ import com.stayhub.review.ReviewService;
 import com.stayhub.review.dto.ReviewCreateRequest;
 import com.stayhub.user.User;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,7 @@ public class BookingController {
     public String createBooking(@Valid @ModelAttribute("bookingRequest") BookingCreateRequest request,
                                 BindingResult bindingResult,
                                 Authentication authentication,
+                                HttpServletRequest httpRequest,
                                 Model model,
                                 RedirectAttributes redirectAttributes) {
         UserPrincipal principal = currentPrincipal(authentication);
@@ -69,10 +71,8 @@ public class BookingController {
             return "booking/booking";
         }
         try {
-            var booking = bookingService.createBooking(principal.getId(), request);
-            redirectAttributes.addFlashAttribute("message",
-                    "Mock payment completed successfully. Your request is waiting for host approval.");
-            return "redirect:/bookings/" + booking.getId();
+            var booking = bookingService.createBooking(principal.getId(), request, clientIp(httpRequest));
+            return "redirect:" + booking.getCheckoutUrl();
         } catch (BusinessException exception) {
             addBookingPageModel(model, request, principal, exception.getMessage());
             return "booking/booking";
@@ -185,7 +185,7 @@ public class BookingController {
     private List<BookingResponse> filterBookings(List<BookingResponse> bookings, String tab) {
         return switch (tab) {
             case "pending" -> bookings.stream()
-                    .filter(booking -> booking.getStatus() == BookingStatus.PENDING)
+                    .filter(booking -> booking.getStatus() == BookingStatus.PENDING || booking.getStatus() == BookingStatus.PENDING_PAYMENT)
                     .toList();
             case "completed" -> bookings.stream()
                     .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
@@ -197,5 +197,13 @@ public class BookingController {
                     .filter(booking -> booking.getStatus() == BookingStatus.CONFIRMED)
                     .toList();
         };
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

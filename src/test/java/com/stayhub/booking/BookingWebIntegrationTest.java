@@ -148,7 +148,7 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                         .param("checkOutDate", LocalDate.now().plusDays(14).toString())
                         .param("guests", "2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/bookings/*"));
+                .andExpect(redirectedUrlPattern("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?*"));
 
         Booking booking = bookingRepository.findAll().getFirst();
         mockMvc.perform(get("/bookings")
@@ -180,8 +180,7 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
 
     @Test
     void hostCanReadRequestsAndAcceptBookingThroughApiAndMvc() throws Exception {
-        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
-                LocalDate.now().plusDays(20), LocalDate.now().plusDays(22), 2));
+        var booking = createExistingBooking(LocalDate.now().plusDays(20), LocalDate.now().plusDays(22));
 
         mockMvc.perform(get("/api/v1/bookings/host/requests")
                         .with(authentication(hostAuthentication)))
@@ -216,8 +215,7 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
 
     @Test
     void guestCanReviewCompletedBookingAndPropertyDetailShowsReviews() throws Exception {
-        var booking = bookingService.createBooking(guest.getId(), bookingRequest(
-                LocalDate.now().plusDays(40), LocalDate.now().plusDays(42), 2));
+        var booking = createExistingBooking(LocalDate.now().plusDays(40), LocalDate.now().plusDays(42));
         bookingService.acceptBooking(host.getId(), booking.getId());
         bookingService.completeBooking(host.getId(), booking.getId());
 
@@ -235,8 +233,8 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(model().attributeExists("reviews"));
     }
 
-    private void createExistingBooking(LocalDate checkInDate, LocalDate checkOutDate) {
-        bookingRepository.save(Booking.builder()
+    private Booking createExistingBooking(LocalDate checkInDate, LocalDate checkOutDate) {
+        return bookingRepository.save(Booking.builder()
                 .property(property)
                 .guest(guest)
                 .checkInDate(checkInDate)
@@ -245,6 +243,8 @@ class BookingWebIntegrationTest extends PostgreSqlIntegrationTest {
                 .nightlyPrice(new BigDecimal("1000000.00"))
                 .cleaningFee(new BigDecimal("100000.00"))
                 .serviceFee(new BigDecimal("200000.00"))
+                .subtotalPrice(new BigDecimal("2300000.00"))
+                .discountAmount(BigDecimal.ZERO)
                 .totalPrice(new BigDecimal("2300000.00"))
                 .status(BookingStatus.PENDING)
                 .build());

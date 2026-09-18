@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNPay result - StayHub</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-bg-light text-text-900">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="mx-auto max-w-3xl px-5 py-12 lg:px-10">
+    <section class="rounded-[2rem] bg-white p-8 text-center shadow-xl shadow-slate-200/60">
+        <p class="text-sm font-bold uppercase tracking-[0.18em] text-primary-500">VNPay payment</p>
+        <h1 class="mt-3 text-3xl font-black tracking-tight md:text-5xl">Verifying your payment</h1>
+        <p id="status-message" class="mt-4 text-text-gray">VNPay returned to StayHub. Waiting for server confirmation from IPN.</p>
+        <div class="mt-8 rounded-3xl bg-bg-light p-5 text-left text-sm">
+            <p><strong>Transaction ref:</strong> <span id="txn-ref" th:text="${txnRef}">N/A</span></p>
+            <p class="mt-2"><strong>VNPay response:</strong> <span th:text="${responseCode}">N/A</span></p>
+        </div>
+        <a id="booking-link" th:href="${localBookingsUrl}" class="mt-8 inline-flex rounded-2xl bg-primary-500 px-6 py-4 font-bold text-white hover:bg-primary-600">Go to my bookings</a>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:inline="javascript">
+    const txnRef = /*[[${txnRef}]]*/ '';
+    const message = document.getElementById('status-message');
+    const bookingId = txnRef && txnRef.startsWith('STAYHUB-') ? txnRef.substring('STAYHUB-'.length) : null;
+
+    async function pollStatus() {
+        if (!bookingId) {
+            message.textContent = 'Unable to identify the booking. Please check My bookings.';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/v1/payments/vnpay/status?txnRef=${encodeURIComponent(txnRef)}`);
+            const payload = await response.json();
+            if (!payload.success) {
+                message.textContent = payload.message || 'Unable to read payment status yet.';
+                return;
+            }
+            const data = payload.data;
+            message.textContent = `Payment: ${data.paymentStatus}. Booking: ${data.bookingStatus}.`;
+            if (data.paymentStatus === 'PENDING') {
+                setTimeout(pollStatus, 2500);
+            }
+        } catch (error) {
+            message.textContent = 'Still waiting for payment confirmation. Refresh or check My bookings shortly.';
+        }
+    }
+
+    pollStatus();
+</script>
+</body>
+</html>

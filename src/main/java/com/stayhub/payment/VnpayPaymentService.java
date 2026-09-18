@@ -26,7 +26,7 @@ public class VnpayPaymentService {
 
     @Autowired
     public VnpayPaymentService(VnpayProperties properties) {
-        this(properties, Clock.systemDefaultZone());
+        this(properties, Clock.system(java.time.ZoneId.of("Asia/Ho_Chi_Minh")));
     }
 
     VnpayPaymentService(VnpayProperties properties, Clock clock) {

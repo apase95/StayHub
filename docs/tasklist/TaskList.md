@@ -194,15 +194,15 @@ StayHub/
 
 - [x] **TSK-070** `[BE_Payment]` Implement VNPay URL builder và secure-hash verifier theo sorted params + HMAC SHA512. *(Estimate: 2h · Priority: High)*
 
-- [ ] **TSK-071** `[BE_Booking]` Refactor `POST /bookings`: tạo booking `PENDING_PAYMENT`, payment `PENDING`, apply discount snapshot, redirect sang VNPay checkout URL. *(Estimate: 2.5h · Priority: High)*
+- [x] **TSK-071** `[BE_Booking]` Refactor `POST /bookings`: tạo booking `PENDING_PAYMENT`, payment `PENDING`, apply discount snapshot, redirect sang VNPay checkout URL. *(Estimate: 2.5h · Priority: High)*
 
-- [ ] **TSK-072** `[BE_Payment]` Implement `GET /api/v1/payments/vnpay/ipn`: verify checksum/amount, idempotent update payment success/failure, booking `CONFIRMED/CANCELLED`, tăng discount usage sau success. *(Estimate: 3h · Priority: High)*
+- [x] **TSK-072** `[BE_Payment]` Implement `GET /api/v1/payments/vnpay/ipn`: verify checksum/amount, idempotent update payment success/failure, booking `CONFIRMED/CANCELLED`, tăng discount usage sau success. *(Estimate: 3h · Priority: High)*
 
-- [ ] **TSK-073** `[FE_Payment]` Thêm `GET /payments/vnpay/return` + template result page: hiển thị đang xác minh, polling status, redirect `/my-bookings`. *(Estimate: 2h · Priority: Medium)*
+- [x] **TSK-073** `[FE_Payment]` Thêm `GET /payments/vnpay/return` + template result page: hiển thị đang xác minh, polling status, redirect `/my-bookings`. *(Estimate: 2h · Priority: Medium)*
 
-- [ ] **TSK-074** `[API_Payment]` Thêm `GET /api/v1/payments/bookings/{bookingId}/status` cho payment result polling. *(Estimate: 1h · Priority: Medium)*
+- [x] **TSK-074** `[API_Payment]` Thêm `GET /api/v1/payments/bookings/{bookingId}/status` cho payment result polling. *(Estimate: 1h · Priority: Medium)*
 
-- [ ] **TSK-075** `[FE_Booking]` Cập nhật booking page: promo code input, apply button, discount line, nút `Pay with VNPay`, hiển thị VND. *(Estimate: 2h · Priority: Medium)*
+- [x] **TSK-075** `[FE_Booking]` Cập nhật booking page: promo code input, apply button, discount line, nút `Pay with VNPay`, hiển thị VND. *(Estimate: 2h · Priority: Medium)*
 
 - [ ] **TSK-076** `[Notification]` Gửi email booking confirmed sau VNPay IPN success, không gửi dựa trên return URL. *(Estimate: 1h · Priority: Medium)*
 
