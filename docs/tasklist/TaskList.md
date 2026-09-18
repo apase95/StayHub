@@ -190,9 +190,9 @@ StayHub/
 
 - [x] **TSK-068** `[API_Discount]` Thêm `POST /api/v1/discounts/validate` để preview discount trên booking page. *(Estimate: 1h · Priority: Medium)*
 
-- [ ] **TSK-069** `[BE_Payment]` Thêm VNPay config properties từ `.env`: `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_PAY_URL`, `VNPAY_RETURN_URL`, `VNPAY_IPN_URL`. *(Estimate: 1h · Priority: High)*
+- [x] **TSK-069** `[BE_Payment]` Thêm VNPay config properties từ `.env`: `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_PAY_URL`, `VNPAY_RETURN_URL`, `VNPAY_IPN_URL`. *(Estimate: 1h · Priority: High)*
 
-- [ ] **TSK-070** `[BE_Payment]` Implement VNPay URL builder và secure-hash verifier theo sorted params + HMAC SHA512. *(Estimate: 2h · Priority: High)*
+- [x] **TSK-070** `[BE_Payment]` Implement VNPay URL builder và secure-hash verifier theo sorted params + HMAC SHA512. *(Estimate: 2h · Priority: High)*
 
 - [ ] **TSK-071** `[BE_Booking]` Refactor `POST /bookings`: tạo booking `PENDING_PAYMENT`, payment `PENDING`, apply discount snapshot, redirect sang VNPay checkout URL. *(Estimate: 2.5h · Priority: High)*
 
