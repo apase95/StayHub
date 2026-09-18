@@ -57,6 +57,15 @@ public class Booking extends BaseEntity {
     @Column(name = "service_fee", nullable = false, precision = 12, scale = 2)
     private BigDecimal serviceFee;
 
+    @Column(name = "subtotal_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal subtotalPrice;
+
+    @Column(name = "discount_code_id")
+    private Long discountCodeId;
+
+    @Column(name = "discount_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountAmount;
+
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
 

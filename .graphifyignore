@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+
+target/
+node_modules/
+uploads/
+storage/
+*.log
+
+.git/
+.idea/
+.vscode/
+
+graph.json
+graphify-out/
